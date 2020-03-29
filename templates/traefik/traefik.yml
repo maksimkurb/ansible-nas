@@ -1,0 +1,38 @@
+global:
+  sendAnonymousUsage: false
+
+log:
+  level: {{ traefik_log_level }}
+  format: common
+
+entryPoints:
+  http:
+    address: ":{{ traefik_port_http }}"
+  https:
+    address: ":{{ traefik_port_https }}"
+
+api:
+  dashboard: true
+
+serversTransport:
+  insecureSkipVerify: true
+
+providers:
+  docker:
+    endpoint: "tcp://traefik-docker-socket-proxy:2375"
+    network: web
+    exposedByDefault: false
+
+certificatesResolvers:
+  cloudflare:
+    acme:
+      email: "{{ ansible_nas_email }}"
+{% if traefik_acme_staging|default(false)|bool %}
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+{% endif %}
+      storage: /acme/acme.json
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"

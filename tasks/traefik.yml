@@ -16,19 +16,81 @@
   with_items:
     - "{{ traefik_data_directory }}"
 
-- name: Template Traefik config.toml
+- name: Template Traefik config.yml
   template:
-    src: traefik/traefik.toml
-    dest: "{{ traefik_data_directory }}/traefik.toml"
+    src: traefik/traefik.yml
+    dest: "{{ traefik_data_directory }}/traefik.yml"
+
+- name: Create web network
+  docker_network:
+    name: web
+
+- name: Create traefik-docker-socket-proxy network
+  docker_network:
+    name: traefik-docker-socket-proxy
+
+- name: Traefik Docker Socket Proxy Container
+  docker_container:
+    name: traefik-docker-socket-proxy
+    image: tecnativa/docker-socket-proxy
+    labels:
+      traefik.enable: "false"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    env:
+      CONTAINERS: "1"
+    networks:
+      - name: traefik-docker-socket-proxy
+    networks_cli_compatible: false
+    pull: true
+    restart_policy: unless-stopped
 
 - name: Traefik Docker Container
   docker_container:
     name: traefik
     image: "{{ traefik_docker_image }}"
     pull: true
-    network_mode: host
+    networks:
+      - name: web
+      - name: traefik-docker-socket-proxy
+    networks_cli_compatible: false
+    ports:
+      - "{{traefik_port_http}}:{{traefik_port_http}}"
+      - "{{traefik_port_https}}:{{traefik_port_https}}"
     volumes:
-      - "{{ traefik_data_directory }}/traefik.toml:/etc/traefik/traefik.toml:ro"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "{{ traefik_data_directory }}/traefik.yml:/etc/traefik/traefik.yml:ro"
+      - "{{ traefik_data_directory }}/acme:/acme"
+    env:
+      CF_API_EMAIL: "{{ ansible_nas_email }}"
+      CF_API_KEY: "{{ cloudflare_api_key }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.api.rule: "Host(`traefik.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.api.service: "api@internal"
+
+      traefik.http.routers.api.tls: "true"
+      traefik.http.routers.api.tls.certResolver: cloudflare
+      traefik.http.routers.api.tls.domains[0].main: "{{ ansible_nas_domain }}"
+      traefik.http.routers.api.tls.domains[0].sans: "*.{{ ansible_nas_domain }}"
+
+      # traefik.http.routers.api.middlewares: "{% if keycloak_enabled|default(false)|bool %}auth-sso{% endif %}"
+
+      # Located in keycloak.yml
+      traefik.http.middlewares.auth-sso.forwardAuth.address: "http://traefik-forward-auth:4181"
+      traefik.http.middlewares.auth-sso.forwardAuth.trustForwardHeader: "true"
+      traefik.http.middlewares.auth-sso.forwardAuth.authResponseHeaders: "X-Forwarded-User"
+
+      traefik.http.middlewares.redirect-to-https.redirectScheme.scheme: "https"
+      traefik.http.routers.redirs.rule: "hostregexp(`{host:.+}`)"
+      traefik.http.routers.redirs.entrypoints: "http"
+      traefik.http.routers.redirs.middlewares: "redirect-to-https"
+
+      traefik.http.middlewares.default-headers.headers.customFrameOptionsValue: "SAMEORIGIN"
+      traefik.http.middlewares.default-headers.headers.stsSeconds: "15552000"
+      traefik.http.middlewares.default-headers.headers.stsIncludeSubdomains: "true"
+
+      traefik.http.middlewares.nextcloud-dav.redirectRegex.regex: "https://(.*)/.well-known/(card|cal)dav"
+      traefik.http.middlewares.nextcloud-dav.redirectRegex.replacement: "https://$1/remote.php/dav/"
+      traefik.http.middlewares.nextcloud-dav.redirectRegex.permanent: "true"
     restart_policy: unless-stopped
     memory: 1g
