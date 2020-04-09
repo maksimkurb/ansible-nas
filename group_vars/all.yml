@@ -614,17 +614,6 @@ nextcloud_data_directory: "{{ docker_home }}/nextcloud"
 nextcloud_port: "8080"
 
 ###
-### KeyCloak
-###
-keycloak_available_externally: "false"
-keycloak_data_directory: "{{ docker_home }}/keycloak"
-keycloak_port: "389"
-keycloak_port_ssl: "636"
-keycloak_domain: "{{ ansible_nas_domain }}"
-keycloak_proxy_client_id: ""
-keycloak_proxy_secret: ""
-
-###
 ### LDAP
 ###
 ldap_available_externally: "false"
