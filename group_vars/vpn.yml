@@ -1,0 +1,21 @@
+---
+# -----------
+# WireGuard
+# -----------
+
+# The default port WireGuard will listen if not specified otherwise.
+wireguard_port: "51820"
+
+# The default interface name that wireguard should use if not specified otherwise.
+wireguard_interface: "wg0"
+
+wireguard_preup:
+  - echo 1 > /proc/sys/net/ipv4/ip_forward
+
+wireguard_postup:
+  - iptables -A FORWARD -i %i -j ACCEPT
+  - iptables -A FORWARD -o %i -j ACCEPT
+
+wireguard_postdown:
+  - iptables -D FORWARD -i %i -j ACCEPT
+  - iptables -D FORWARD -o %i -j ACCEPT

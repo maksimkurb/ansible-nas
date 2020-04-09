@@ -7,3 +7,6 @@
 
 - name: geerlingguy.nfs
   version: 1.5.0
+
+- name: githubixx.ansible_role_wireguard
+  version: 6.0.2

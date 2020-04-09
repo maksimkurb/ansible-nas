@@ -1,0 +1,330 @@
+---
+# ================
+# LDAP Directories
+# ================
+- name: "Create LDAP directories"
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ ldap_data_directory }}/ldap"
+    - "{{ ldap_data_directory }}/slapd"
+    - "{{ ldap_data_directory }}/authelia"
+    - "{{ ldap_data_directory }}/creds"
+    - "{{ ldap_data_directory }}/certs"
+    - "{{ ldap_data_directory }}/certs-phpldapadmin"
+
+# ================
+# LDAP OpenSSL certs
+# ================
+# - name: Check if OpenSSL CA cert exists
+#   stat:
+#     path: "{{ ldap_data_directory }}/certs/ca.crt"
+#   register: ldap_openssl_ca_cert
+
+# - name: Check if OpenSSL key exists
+#   stat:
+#     path: "{{ ldap_data_directory }}/certs/ldap.key"
+#   register: ldap_openssl_key
+
+- name: Generate Diffie-Hellman parameters with the default size (4096 bits)
+  openssl_dhparam:
+    path: "{{ ldap_data_directory }}/certs/dhparam.pem"
+    state: present
+
+- name: LDAP OpenSSL CA key
+  openssl_privatekey:
+    path: "{{ ldap_data_directory }}/certs/ca.key"
+    size: 2048
+    state: present
+
+- name: LDAP OpenSSL CA certificate request
+  openssl_csr:
+    path: "{{ ldap_data_directory }}/certs/ca.csr"
+    privatekey_path: "{{ ldap_data_directory }}/certs/ca.key"
+    common_name: "{{ ansible_nas_domain }}"
+    state: present
+
+- name: LDAP OpenSSL CA certificate
+  openssl_certificate:
+    path: "{{ ldap_data_directory }}/certs/ca.crt"
+    privatekey_path: "{{ ldap_data_directory }}/certs/ca.key"
+    csr_path: "{{ ldap_data_directory }}/certs/ca.csr"
+    provider: selfsigned
+    state: present
+
+- name: LDAP OpenSSL key
+  openssl_privatekey:
+    path: "{{ ldap_data_directory }}/certs/ldap.key"
+    size: 2048
+    state: present
+
+- name: LDAP OpenSSL certificate request
+  openssl_csr:
+    path: "{{ ldap_data_directory }}/certs/ldap.csr"
+    privatekey_path: "{{ ldap_data_directory }}/certs/ldap.key"
+    state: present
+    common_name: "{{ ansible_nas_domain }}"
+    subject_alt_name:
+      - "DNS:{{ ansible_nas_domain }}"
+      - "DNS:ldap.{{ ansible_nas_domain }}"
+      - "DNS:ldap1.{{ ansible_nas_domain }}"
+      - "DNS:ldap2.{{ ansible_nas_domain }}"
+      - "DNS:ldap3.{{ ansible_nas_domain }}"
+
+- name: LDAP OpenSSL certificate
+  openssl_certificate:
+    path: "{{ ldap_data_directory }}/certs/ldap.crt"
+    csr_path: "{{ ldap_data_directory }}/certs/ldap.csr"
+    ownca_path: "{{ ldap_data_directory }}/certs/ca.crt"
+    ownca_privatekey_path: "{{ ldap_data_directory }}/certs/ca.key"
+    provider: ownca
+    state: present
+
+- name: Protect CA key
+  file:
+    path: "{{ ldap_data_directory }}/certs/ca.key"
+    state: file
+    owner: ansible-nas
+    group: docker
+    mode: "600"
+
+# =======
+# WhoAmI
+# =======
+- name: "WhoAmI container"
+  docker_container:
+    name: whoami
+    image: emilevauge/whoami
+    pull: true
+    networks:
+      - name: web
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.whoami-svc.loadbalancer.server.port: "80"
+      traefik.http.routers.whoami.rule: "Host(`whoami.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.whoami.tls: "true"
+      traefik.http.routers.whoami.middlewares: "auth-sso"
+
+# ================
+# OpenLDAP Server
+# ================
+
+- name: Create Docker LDAP network
+  docker_network:
+    name: ldap
+
+- name: "OpenLDAP Docker Container"
+  docker_container:
+    name: openldap
+    image: "osixia/openldap"
+    pull: true
+    tty: true
+    interactive: true
+    hostname: "{{ ldap_domain }}"
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+    env:
+      LDAP_ORGANISATION: "{{ ldap_organization | default('Ansible NAS') }}"
+      LDAP_DOMAIN: "{{ ldap_domain }}"
+      LDAP_BASE_DN: "{{ ldap_base_dn }}"
+
+      LDAP_ADMIN_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+      LDAP_CONFIG_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_config_passwd length=32') }}"
+      LDAP_READONLY_USER: "true"
+      LDAP_READONLY_USER_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_readonly_passwd length=32') }}"
+
+      LDAP_TLS: "true"
+      LDAP_TLS_CRT_FILENAME: "ldap.crt"
+      LDAP_TLS_KEY_FILENAME: "ldap.key"
+      LDAP_TLS_DH_PARAM_FILENAME: "dhparam.pem"
+      LDAP_TLS_CA_CRT_FILENAME: "ca.crt"
+      LDAP_TLS_ENFORCE: "false"
+
+      LDAP_TLS_CIPHER_SUITE: "NORMAL:SECURE256:-VERS-SSL3.0"
+      LDAP_TLS_PROTOCOL_MIN: "3.0"
+      LDAP_TLS_VERIFY_CLIENT: "never"
+
+      KEEP_EXISTING_CONFIG: "false"
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
+    volumes:
+      - "{{ ldap_data_directory }}/ldap:/var/lib/ldap"
+      - "{{ ldap_data_directory }}/slapd:/etc/ldap/slapd.d"
+      - "{{ ldap_data_directory }}/certs:/container/service/slapd/assets/certs"
+    networks:
+      - name: ldap
+      - name: web
+    networks_cli_compatible: false
+    ports:
+      # - "{{ ldap_port }}:389"
+      - "{{ ldap_port_ssl }}:636"
+    restart_policy: unless-stopped
+
+# ================
+# OpenLDAP init basic schema
+# ================
+- name: Install LDAP prerequisites
+  apt:
+    name: ["python-ldap", "python3-ldap"]
+    state: latest
+
+- name: "Wait for OpenLDAP server is up"
+  wait_for:
+    port: 636
+    timeout: 60
+
+- pause:
+    seconds: 2
+
+- name: "Create LDAP base dn"
+  ldap_entry:
+    dn: "{{ ldap_base_dn }}"
+    objectClass:
+      - organization
+      - dcObject
+    attributes:
+      o: Ansible NAS
+      description: Ansible LDAP Server
+    server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
+    state: present
+    bind_dn: "cn=admin,{{ ldap_base_dn }}"
+    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    validate_certs: no
+
+- name: "Create LDAP organisational units"
+  ldap_entry:
+    dn: "ou={{ item }},{{ ldap_base_dn }}"
+    objectClass: organizationalUnit
+    server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
+    state: present
+    bind_dn: "cn=admin,{{ ldap_base_dn }}"
+    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    validate_certs: no
+  loop:
+    - users
+    - groups
+
+- name: "Create LDAP root user"
+  ldap_entry:
+    dn: "cn=root,ou=users,{{ ldap_base_dn }}"
+    objectClass:
+      - inetOrgPerson
+    attributes:
+      cn: root
+      givenName: Root
+      sn: User
+      mail: "root@{{ ldap_domain }}"
+    server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
+    state: present
+    bind_dn: "cn=admin,{{ ldap_base_dn }}"
+    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    validate_certs: no
+
+- name: "Set password for LDAP root user"
+  ldap_passwd:
+    dn: "cn=root,ou=users,{{ ldap_base_dn }}"
+    passwd: "{{ lookup('password', ldap_data_directory + '/creds/ldap_root_user_passwd length=32') }}"
+    server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
+    bind_dn: "cn=admin,{{ ldap_base_dn }}"
+    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    validate_certs: no
+
+- name: "Create LDAP groups"
+  ldap_entry:
+    dn: "cn={{ item }},ou=groups,{{ ldap_base_dn }}"
+    objectClass:
+      - groupOfUniqueNames
+    attributes:
+      uniqueMember: "cn=root,ou=users,{{ ldap_base_dn }}"
+    server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
+    state: present
+    bind_dn: "cn=admin,{{ ldap_base_dn }}"
+    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    validate_certs: no
+  loop: "{{ ldap_groups }}"
+
+# ================
+# PhpLdapAdmin
+# ================
+- name: "PhpLdapAdmin container"
+  docker_container:
+    name: phpldapadmin
+    image: "osixia/phpldapadmin"
+    pull: true
+    env:
+      PHPLDAPADMIN_HTTPS: "false"
+      PHPLDAPADMIN_TRUST_PROXY_SSL: "true"
+      PHPLDAPADMIN_LDAP_HOSTS: "#PYTHON2BASH:[{'openldap': [{'login': [{'bind_id': 'cn=admin,{{ ldap_base_dn }}'}]}]}]"
+    networks:
+      - name: ldap
+      - name: web
+    networks_cli_compatible: false
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.phpLdapAdmin-svc.loadbalancer.server.port: "80"
+      traefik.http.routers.phpLdapAdmin.rule: "Host(`ldap-admin.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.phpLdapAdmin.tls: "true"
+    restart_policy: unless-stopped
+
+# ================
+# Authelia
+# ================
+- name: Create Authelia user on Postgres
+  postgresql_user:
+    name: authelia
+    password: "{{ lookup('password', ldap_data_directory + '/creds/authelia_postgres_passwd length=32') }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Create Authelia database on Postgres
+  postgresql_db:
+    name: authelia
+    owner: authelia
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Template Authelia config
+  template:
+    src: ldap/authelia.yml
+    dest: "{{ ldap_data_directory }}/authelia/configuration.yml"
+
+# After some testing it occurred that traefik-forward-auth is not working with users without email
+# Keep that in mind if logging in as default 'admin' user
+- name: "Authelia container"
+  docker_container:
+    name: authelia
+    image: authelia/authelia
+    pull: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.authelia-svc.loadbalancer.server.port: "9091"
+      traefik.http.routers.authelia.rule: "Host(`sso.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.authelia.tls: "true"
+    restart: yes
+    volumes:
+      - "{{ ldap_data_directory }}/authelia/configuration.yml:/etc/authelia/configuration.yml:ro"
+    etc_hosts:
+      host.docker.internal: "172.17.0.1"
+    env:
+      AUTHELIA_JWT_SECRET: "{{ lookup('password', ldap_data_directory + '/creds/authelia_jwt_secret length=32')  }}"
+      AUTHELIA_SESSION_SECRET: "{{ lookup('password', ldap_data_directory + '/creds/authelia_session_secret length=32')  }}"
+      AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_readonly_passwd length=32') }}"
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/authelia_postgres_passwd length=32') }}"
+      AUTHELIA_NOTIFIER_SMTP_PASSWORD: "{{ smtp_password }}"
+    networks:
+      - name: ldap
+      - name: postgres
+      - name: web
+    restart_policy: unless-stopped
+
+- name: "Redis for Authelia"
+  docker_container:
+    name: redis-authelia
+    image: redis
+    networks:
+      - name: ldap
+    restart_policy: unless-stopped

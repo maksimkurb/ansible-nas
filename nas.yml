@@ -36,6 +36,14 @@
       when: (traefik_enabled | default(False))
       tags: traefik
 
+    - import_tasks: tasks/postgres.yml
+      when: (postgres_enabled | default(False))
+      tags: postgres
+
+    - import_tasks: tasks/ldap.yml
+      when: (ldap_enabled | default(False))
+      tags: ldap
+
     - import_tasks: tasks/heimdall.yml
       when: (heimdall_enabled | default(False))
       tags: heimdall

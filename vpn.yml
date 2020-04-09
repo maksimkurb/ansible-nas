@@ -1,0 +1,45 @@
+---
+- import_playbook: bootstrap.yml
+
+- hosts: all
+
+  roles:
+    - role: githubixx.ansible_role_wireguard
+      tags: wireguard
+
+  tasks:
+    - name: wireguard | stop service before firewall configuration
+      tags: firewall
+      systemd:
+        name: "wg-quick@{{wireguard_interface}}"
+        state: stopped
+
+    - name: firewalld | open ssh port
+      tags: firewall
+      firewalld:
+        service: ssh
+        permanent: yes
+        state: enabled
+        zone: public
+
+    - name: firewalld | open wireguard port
+      tags: firewall
+      firewalld:
+        port: "{{ wireguard_port }}/udp"
+        permanent: yes
+        state: enabled
+        zone: public
+
+    - name: firewalld | enable masquerade
+      tags: firewall
+      firewalld:
+        permanent: yes
+        masquerade: "yes"
+        state: enabled
+        zone: public
+
+    - name: wireguard | start service after firewall configuration
+      tags: firewall
+      systemd:
+        name: "wg-quick@{{wireguard_interface}}"
+        state: started

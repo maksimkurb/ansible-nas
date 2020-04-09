@@ -15,6 +15,9 @@
 ### Ansible-NAS Applications
 ###
 
+# Database
+postges_enabled: false # Highly recommended to enable and connect it to another services
+
 # Downloading
 transmission_with_openvpn_enabled: false # Please see docs about how to set VPN credentials
 transmission_enabled: false
@@ -76,6 +79,7 @@ bitwarden_enabled: false
 
 # SSO
 keycloak_enabled: false
+ldap_enabled: false
 
 # Finance
 firefly_enabled: false
@@ -131,6 +135,15 @@ ansible_nas_email: me@example.com
 
 # Applications will have subdomain SSL certificates created if Traefik is enabled, e.g. ansible-nas.<your-domain>, nextcloud.<your-domain>
 ansible_nas_domain: example.com
+
+###
+### SMTP notifier
+###
+smtp_host: "smtp.yandex.ru"
+smtp_port: "587"
+smtp_username: "notify@example.com"
+smtp_password: ""
+smtp_sender: "notify@example.com"
 
 ###
 ### Docker
@@ -344,6 +357,14 @@ heimdall_docker_image: linuxserver/heimdall:latest
 heimdall_data_directory: "{{ docker_home }}/heimdall"
 heimdall_port_http: "10080"
 heimdall_port_https: "10443"
+
+###
+### Postgres
+###
+postgres_docker_image: postgres:12.0
+postgres_data_directory: "{{ docker_home }}/postgres"
+postgres_user: pguser
+postgres_password: "{{ lookup('password', postgres_data_directory + '/creds/pguser_password length=20') }}"
 
 ###
 ### Transmission
@@ -602,6 +623,31 @@ keycloak_port_ssl: "636"
 keycloak_domain: "{{ ansible_nas_domain }}"
 keycloak_proxy_client_id: ""
 keycloak_proxy_secret: ""
+
+###
+### LDAP
+###
+ldap_available_externally: "false"
+ldap_data_directory: "{{ docker_home }}/ldap"
+ldap_port: "389"
+ldap_port_ssl: "636"
+ldap_organisation: "Ansible NAS"
+
+# If your domain is bigger than 2 components (e.g. home.example.com), please set it manually to example.com
+# or ldap will use wrong BASE_DN (dc=home,dc=com instead of dc=home,dc=example,dc=com); ldap_base_dn is ignored due to this issue
+# Issue: https://github.com/tiredofit/docker-openldap/issues/16
+ldap_domain: "{{ ansible_nas_domain }}"
+
+# will convert domain like "demo.cubly.ru" to "dc=demo,dc=cubly,dc=ru"
+ldap_base_dn: "{{ ldap_domain.split('.') | map('regex_replace', '(.*)', 'dc=\\1') | join(',') }}"
+
+ldap_groups:
+  - nextcloud
+  - nextcloud-limited
+  - homeassistant
+  - nodered
+  - whoami
+  - admin
 
 ###
 ### nginx

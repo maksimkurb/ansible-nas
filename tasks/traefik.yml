@@ -73,12 +73,12 @@
       traefik.http.routers.api.tls.domains[0].main: "{{ ansible_nas_domain }}"
       traefik.http.routers.api.tls.domains[0].sans: "*.{{ ansible_nas_domain }}"
 
-      # traefik.http.routers.api.middlewares: "{% if keycloak_enabled|default(false)|bool %}auth-sso{% endif %}"
+      traefik.http.routers.api.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
 
       # Located in keycloak.yml
-      traefik.http.middlewares.auth-sso.forwardAuth.address: "http://traefik-forward-auth:4181"
+      traefik.http.middlewares.auth-sso.forwardAuth.address: "http://authelia:9091/api/verify?rd=https://sso.{{ ansible_nas_domain }}/"
       traefik.http.middlewares.auth-sso.forwardAuth.trustForwardHeader: "true"
-      traefik.http.middlewares.auth-sso.forwardAuth.authResponseHeaders: "X-Forwarded-User"
+      traefik.http.middlewares.auth-sso.forwardAuth.authResponseHeaders: "Remote-User,Remote-Groups"
 
       traefik.http.middlewares.redirect-to-https.redirectScheme.scheme: "https"
       traefik.http.routers.redirs.rule: "hostregexp(`{host:.+}`)"
