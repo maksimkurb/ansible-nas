@@ -5,44 +5,154 @@
     state: directory
   with_items:
     - "{{ nextcloud_data_directory }}/nextcloud"
-    - "{{ nextcloud_data_directory }}/mysql"
+    - "{{ nextcloud_data_directory }}/creds"
 
-- name: Nextcloud Mysql Docker Container
+- name: Create Nextcloud user on Postgres
+  postgresql_user:
+    name: nextcloud
+    password: "{{ lookup('password', nextcloud_data_directory + '/creds/nextcloud_postgres_passwd length=32') }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Create Nextcloud database on Postgres
+  postgresql_db:
+    name: nextcloud
+    owner: nextcloud
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Create Docker Nextcloud network
+  docker_network:
+    name: nextcloud
+
+- name: "Redis for Nextcloud"
   docker_container:
-    name: nextcloud-mysql
-    image: mysql:5.7
-    pull: true
-    volumes:
-      - "{{ nextcloud_data_directory }}/mysql:/var/lib/mysql:rw"
-    env:
-      MYSQL_DATABASE: "nextcloud"
-      MYSQL_USER: "nextcloud-user"
-      MYSQL_PASSWORD: "nextcloud-pass"
-      MYSQL_ROOT_PASSWORD: "nextcloud-secret"
+    name: redis-nextcloud
+    image: redis
+    networks:
+      - name: nextcloud
     restart_policy: unless-stopped
-    memory: 1g
 
 - name: Nextcloud Docker Container
   docker_container:
     name: nextcloud
-    image: nextcloud:14
+    image: nextcloud:18
     pull: true
-    links:
-        - nextcloud-mysql:mysql
     volumes:
       - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
     ports:
       - "{{ nextcloud_port }}:80"
-    env:
-      MYSQL_HOST: "mysql"
-      MYSQL_DATABASE: "nextcloud"
-      MYSQL_USER: "nextcloud-user"
-      MYSQL_PASSWORD: "nextcloud-pass"
+    networks:
+      - name: ldap
+      - name: postgres
+      - name: nextcloud
+      - name: web
+    env: &nextcloud-env
+      POSTGRES_HOST: "postgres"
+      POSTGRES_DB: "nextcloud"
+      POSTGRES_USER: "nextcloud"
+      POSTGRES_PASSWORD: "{{ lookup('password', nextcloud_data_directory + '/creds/nextcloud_postgres_passwd length=32') }}"
       NEXTCLOUD_TRUSTED_DOMAINS: "nextcloud.{{ ansible_nas_domain }}"
+
+      REDIS_HOST: "redis-nextcloud"
+      REDIS_HOST_PORT: "6379"
+
+      # SAME AS IN LDAP to match LDAP admin with Nextcloud admin.
+      # After bootstrap, admin rights can be granted to users via this root user
+      # Install SSO app and use following settings:
+      # 1. Use environment variables
+      # 2. UID variable: HTTP_REMOTE_USER
+      # 3. DO NOT SET "Group mapping variable" to HTTP_REMOTE_GROUPS until issue will be resolved: https://github.com/nextcloud/user_saml/issues/293
+      #    or it can cause system lock-out
+      NEXTCLOUD_ADMIN_USER: "root"
+      NEXTCLOUD_ADMIN_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_root_user_passwd length=32') }}"
+
+      SMTP_SECURE: "true"
+      SMTP_HOST: "{{ smtp_host }}"
+      SMTP_PORT: "{{ smtp_port }}"
+      SMTP_NAME: "{{ smtp_username }}"
+      SMTP_PASSWORD: "{{ smtp_password }}"
+      MAIL_FROM_ADDRESS: "{{ smtp_sender }}"
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "nextcloud"
-      traefik.frontend.rule: "Host:nextcloud.{{ ansible_nas_domain }}"
       traefik.enable: "{{ nextcloud_available_externally }}"
-      traefik.port: "80"
+      traefik.http.services.nextcloud-svc.loadbalancer.server.port: "80"
+      traefik.http.routers.nextcloud.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
+      traefik.http.routers.nextcloud.rule: "Host(`nextcloud.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.nextcloud.tls: "true"
+
+# Check if configuration needed
+- name: Wait for nextcloud container initialization
+  shell: "docker logs nextcloud"
+  register: nc_init_result
+  until: nc_init_result.stderr.find("apache2 -D FOREGROUND") != -1
+  retries: 10
+  delay: 3
+
+- name: Check if nextcloud was already configured by ansible-nas
+  shell: "docker exec -u www-data nextcloud php occ config:system:get configured_by_ansible_nas"
+  register: nc_config_result
+  failed_when: nc_config_result.rc != 1 and nc_config_result.rc != 0
+
+# Configure basic parameters
+- name: Set nextcloud configuration properties
+  shell: "docker exec -u www-data nextcloud php occ config:system:set {{ item }}"
+  when: nc_config_result.stdout.find("true") == -1
+  with_items:
+    - "overwriteprotocol --value 'https'" # traefik acts as reverse proxy
+    - "trusted_proxies 0 --value '172.0.0.0/12'"
+    - "csrf.optout 0 --value '/^WebDAVFS/'"
+    - "csrf.optout 1 --value '/^Microsoft-WebDAV-MiniRedir/'"
+    - "csrf.optout 2 --value '/KeeWeb\\/\\d+\\.\\d+\\.\\d+/'"
+
+    - "mail_smtpmode --value='smtp'"
+    - "mail_sendmailmode --value='smtp'"
+    - "mail_smtpsecure --value='ssl'"
+    - "mail_smtpauthtype --value='LOGIN'"
+    - "mail_smtpauth --type=integer --value=1"
+    - "mail_from_address --value='{{ smtp_sender.split('@')[0] }}'"
+    - "mail_domain --value='{{ smtp_sender.split('@')[1] }}'"
+    - "mail_smtphost --value='{{ smtp_host }}'"
+    - "mail_smtpport --value='{{ smtp_port }}'"
+    - "mail_smtpname --value='{{ smtp_username }}'"
+
+- name: Set nextcloud smtp password
+  when: nc_config_result.stdout.find("true") == -1
+  shell: "docker exec -u www-data nextcloud php occ config:system:set mail_smtppassword --value='{{ smtp_password }}'"
+
+# Configure SAML
+- name: Install nextcloud SAML app
+  when: ldap_enabled
+  shell: "docker exec -u www-data nextcloud php occ app:install user_saml"
+
+- name: Configure nextcloud SAML app
+  when: ldap_enabled
+  shell: "docker exec -u www-data nextcloud php occ config:system:set {{ item }}"
+  with_items:
+    - "trusted_proxies 0 --value '172.0.0.0/12'"
+
+# Mark configuration as done to prevent configuration by ansible next time
+- name: Set 'configured_by_ansible_nas' in nextcloud
+  when: nc_config_result.stdout.find("true") == -1
+  shell: "docker exec -u www-data nextcloud php occ config:system:set configured_by_ansible_nas --type=boolean --value=true"
+
+# Cron container
+- name: Nextcloud Cron Docker Container
+  docker_container:
+    name: nextcloud-cron
+    image: nextcloud:18
+    entrypoint: /cron.sh
+    volumes:
+      - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
+    networks:
+      - name: ldap
+      - name: postgres
+      - name: nextcloud
+      - name: web
+    env: *nextcloud-env
+    restart_policy: unless-stopped
