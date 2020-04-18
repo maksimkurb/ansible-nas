@@ -3,6 +3,7 @@
   file:
     path: "{{ item }}"
     state: directory
+    mode: 0777
   with_items:
     - "{{ nextcloud_data_directory }}/nextcloud"
     - "{{ nextcloud_data_directory }}/creds"
@@ -61,15 +62,8 @@
       REDIS_HOST: "redis-nextcloud"
       REDIS_HOST_PORT: "6379"
 
-      # SAME AS IN LDAP to match LDAP admin with Nextcloud admin.
-      # After bootstrap, admin rights can be granted to users via this root user
-      # Install SSO app and use following settings:
-      # 1. Use environment variables
-      # 2. UID variable: HTTP_REMOTE_USER
-      # 3. DO NOT SET "Group mapping variable" to HTTP_REMOTE_GROUPS until issue will be resolved: https://github.com/nextcloud/user_saml/issues/293
-      #    or it can cause system lock-out
-      NEXTCLOUD_ADMIN_USER: "root"
-      NEXTCLOUD_ADMIN_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_root_user_passwd length=32') }}"
+      NEXTCLOUD_ADMIN_USER: "internal-admin"
+      NEXTCLOUD_ADMIN_PASSWORD: "{{ lookup('password', nextcloud_data_directory + '/creds/internal_admin_user_passwd length=32') }}"
 
       SMTP_SECURE: "true"
       SMTP_HOST: "{{ smtp_host }}"
@@ -77,21 +71,21 @@
       SMTP_NAME: "{{ smtp_username }}"
       SMTP_PASSWORD: "{{ smtp_password }}"
       MAIL_FROM_ADDRESS: "{{ smtp_sender }}"
-    restart_policy: unless-stopped
-    memory: 1g
     labels:
       traefik.enable: "{{ nextcloud_available_externally }}"
       traefik.http.services.nextcloud-svc.loadbalancer.server.port: "80"
       traefik.http.routers.nextcloud.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
       traefik.http.routers.nextcloud.rule: "Host(`nextcloud.{{ ansible_nas_domain }}`)"
       traefik.http.routers.nextcloud.tls: "true"
+    restart_policy: unless-stopped
+    memory: 1g
 
 # Check if configuration needed
 - name: Wait for nextcloud container initialization
   shell: "docker logs nextcloud"
   register: nc_init_result
   until: nc_init_result.stderr.find("apache2 -D FOREGROUND") != -1
-  retries: 10
+  retries: 30
   delay: 3
 
 - name: Check if nextcloud was already configured by ansible-nas
@@ -105,7 +99,7 @@
   when: nc_config_result.stdout.find("true") == -1
   with_items:
     - "overwriteprotocol --value 'https'" # traefik acts as reverse proxy
-    - "trusted_proxies 0 --value '172.0.0.0/12'"
+    - "trusted_proxies 0 --value '172.16.0.0/12'"
     - "csrf.optout 0 --value '/^WebDAVFS/'"
     - "csrf.optout 1 --value '/^Microsoft-WebDAV-MiniRedir/'"
     - "csrf.optout 2 --value '/KeeWeb\\/\\d+\\.\\d+\\.\\d+/'"
@@ -125,16 +119,44 @@
   when: nc_config_result.stdout.find("true") == -1
   shell: "docker exec -u www-data nextcloud php occ config:system:set mail_smtppassword --value='{{ smtp_password }}'"
 
-# Configure SAML
-- name: Install nextcloud SAML app
-  when: ldap_enabled
-  shell: "docker exec -u www-data nextcloud php occ app:install user_saml"
+# Configure LDAP
+- name: Install nextcloud LDAP app
+  when: ldap_enabled and nc_config_result.stdout.find("true") == -1
+  shell: "docker exec -u www-data nextcloud php occ app:enable user_ldap"
 
-- name: Configure nextcloud SAML app
-  when: ldap_enabled
-  shell: "docker exec -u www-data nextcloud php occ config:system:set {{ item }}"
+- name: Configure nextcloud LDAP app
+  when: ldap_enabled and nc_config_result.stdout.find("true") == -1
+  shell: "docker exec -u www-data nextcloud php occ config:app:set user_ldap {{ item }}"
   with_items:
-    - "trusted_proxies 0 --value '172.0.0.0/12'"
+    - "background_sync_interval --value '43200'"
+    - "s01ldap_configuration_active --value '1'"
+    - "s01ldap_loginfilter_username --value '1'"
+    - "s01ldap_group_filter_mode --value '0'"
+    - "s01ldap_group_display_name --value 'cn'"
+    - "s01ldap_host --value 'openldap'"
+    - "s01ldap_port --value '389'"
+    - "s01ldap_base --value '{{ ldap_base_dn }}'"
+    - "s01ldap_experienced_admin --value '0'"
+    - "s01ldap_dn --value 'cn=readonly,{{ ldap_base_dn }}'"
+    - "s01ldap_agent_password --value '{{ lookup('password', ldap_data_directory + '/creds/ldap_readonly_passwd length=32') | b64encode }}'"
+    - "s01ldap_display_name --value 'displayName'"
+    - "s01has_memberof_filter_support --value '1'"
+    - "s01ldap_expert_username_attr --value 'cn'"
+    - "s01ldap_login_filter_mode --value '0'"
+    - "s01ldap_email_attr --value 'mail'"
+    - "s01ldap_user_filter_mode --value '0'"
+    - "s01ldap_base_users --value 'ou=users,{{ ldap_base_dn }}'"
+    - "s01ldap_base_groups --value 'ou=groups,{{ ldap_base_dn }}'"
+    - "s01ldap_userfilter_groups --value 'nextcloud'"
+    - "s01ldap_groupfilter_objectclass --value 'groupOfUniqueNames'"
+    - "s01ldap_group_filter --value '(&(|(objectclass=groupOfUniqueNames)))'"
+    - "s01ldap_userfilter_objectclass --value 'inetOrgPerson'"
+    - "s01ldap_group_member_assoc_attribute --value 'uniqueMember'"
+    - "s01ldap_userlist_filter --value '(&(|(objectclass=inetOrgPerson))(|(memberof=cn=nextcloud,ou=groups,{{ ldap_base_dn }})))'"
+    - "background_sync_prefix --value 's01'"
+    - "s01ldap_loginfilter_email --value '1'"
+    - "s01ldap_login_filter --value '(&(&(|(objectclass=inetOrgPerson))(|(memberof=cn=nextcloud,ou=groups,{{ ldap_base_dn }})))(|(cn=%uid)(|(mailPrimaryAddress=%uid)(mail=%uid))))'"
+    - "s01use_memberof_to_detect_membership --value '1'"
 
 # Mark configuration as done to prevent configuration by ansible next time
 - name: Set 'configured_by_ansible_nas' in nextcloud
@@ -153,6 +175,5 @@
       - name: ldap
       - name: postgres
       - name: nextcloud
-      - name: web
     env: *nextcloud-env
     restart_policy: unless-stopped
