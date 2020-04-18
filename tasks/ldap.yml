@@ -17,15 +17,6 @@
 # ================
 # LDAP OpenSSL certs
 # ================
-# - name: Check if OpenSSL CA cert exists
-#   stat:
-#     path: "{{ ldap_data_directory }}/certs/ca.crt"
-#   register: ldap_openssl_ca_cert
-
-# - name: Check if OpenSSL key exists
-#   stat:
-#     path: "{{ ldap_data_directory }}/certs/ldap.key"
-#   register: ldap_openssl_key
 
 - name: Generate Diffie-Hellman parameters with the default size (4096 bits)
   openssl_dhparam:

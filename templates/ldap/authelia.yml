@@ -90,7 +90,7 @@ authentication_backend:
     # {dn} is a matcher replaced by user DN.
     # {uid} is a matcher replaced by user uid.
     # 'member={dn}' by default.
-    groups_filter: (|(&(uniqueMember={dn})(objectclass=groupOfUniqueNames))(&(member={dn})(objectclass=groupOfNames)))
+    groups_filter: (&(uniqueMember={dn})(objectclass=groupOfUniqueNames))
     # The attribute holding the name of the group
     group_name_attribute: cn
     # The username and password of the admin user.
@@ -147,62 +147,10 @@ access_control:
   # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
   # It is the policy applied to any resource if there is no policy to be applied
   # to the user.
-  default_policy: deny
+  default_policy: "{{ ldap_authelia_default_policy | default('deny') }}"
 
   rules:
-    # Rules applied to everyone
-    - domain: "public.{{ ansible_nas_domain }}"
-      policy: bypass
-
-    - domain: "traefik.{{ ansible_nas_domain }}"
-      policy: one_factor
-      subject: "group:admin"
-
-    - domain: "whoami.{{ ansible_nas_domain }}"
-      policy: one_factor
-
-    - domain: "nodered.{{ ansible_nas_domain }}"
-      policy: two_factor
-
-    - domain: "torrents.{{ ansible_nas_domain }}"
-      policy: one_factor
-      # Network based rule, if not provided any network matches.
-      #networks:
-      #  - 192.168.1.0/24
-
-    # Rules applied to 'admins' group
-    #- domain: "mx2.mail.example.com"
-    #  subject: "group:admins"
-    #  policy: deny
-    #- domain: "*.example.com"
-    #  subject: "group:admins"
-    #  policy: two_factor
-    # Rules applied to 'dev' group
-    #- domain: dev.example.com
-    #  resources:
-    #    - "^/groups/dev/.*$"
-    #  policy: two_factor
-    # Rules applied to user 'john'
-    #- domain: dev.example.com
-    #  resources:
-    #    - "^/users/john/.*$"
-    #  subject: "user:john"
-    #  policy: two_factor
-    # Rules applied to user 'harry'
-    #- domain: dev.example.com
-    #  resources:
-    #    - "^/users/harry/.*$"
-    #  subject: "user:harry"
-    #  policy: two_factor
-    # Rules applied to user 'bob'
-    #- domain: "*.mail.example.com"
-    #  subject: "user:bob"
-    #  policy: two_factor
-    #- domain: "dev.example.com"
-    #  resources:
-    #    - "^/users/bob/.*$"
-    #  subject: "user:bob"
-    #  policy: two_factor
+    {{ ldap_authelia_rules | to_nice_yaml | indent(width=4, indentfirst=False) }}
 
 # Configuration of session cookies
 #

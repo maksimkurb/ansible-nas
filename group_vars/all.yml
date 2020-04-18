@@ -641,6 +641,50 @@ ldap_groups:
   - whoami
   - admin
 
+# Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
+# It is the policy applied to any resource if there is no policy to be applied
+# to the user.
+ldap_authelia_default_policy: deny
+
+# With Authelia you can define a list of rules that are going to be evaluated in sequential
+# order when authorization is delegated to Authelia.
+# The _first_ matching rule of the list defines the policy applied to the resource,
+# if no rule matches the resource a customizable default policy is applied.
+# https://docs.authelia.com/configuration/access-control.html
+ldap_authelia_rules:
+  # Rules applied to everyone
+  - domain: "public.{{ ansible_nas_domain }}"
+    policy: bypass
+
+  - domain: "traefik.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:admin"
+
+  - domain: "whoami.{{ ansible_nas_domain }}"
+    policy: one_factor
+
+  - domain: "ldap-admin.{{ ansible_nas_domain }}"
+    policy: bypass
+    networks:
+      - 192.168.0.0/16
+
+  - domain: "ldap-admin.{{ ansible_nas_domain }}"
+    policy: two_factor
+    subject: "group:admin"
+
+  # Using LDAP for nextcloud instead of SSO/SAML because logging out is not working correctly
+  # Because Authelia does not supports true SAML yet, Nextcloud checks X-Forwared-User once and then saves
+  # session cookie. If we re-login with another user in SSO, nextcloud will treat us as previous user because it ignores X-Forwarded-User
+  # if session-cookie exists
+  - domain: "nextcloud.{{ ansible_nas_domain }}"
+    policy: bypass
+
+  - domain: "nodered.{{ ansible_nas_domain }}"
+    policy: two_factor
+
+  - domain: "torrents.{{ ansible_nas_domain }}"
+    policy: one_factor
+
 ###
 ### nginx
 ###
