@@ -644,7 +644,7 @@ ldap_groups:
 # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
 # It is the policy applied to any resource if there is no policy to be applied
 # to the user.
-ldap_authelia_default_policy: deny
+ldap_authelia_default_policy: one_factor
 
 # With Authelia you can define a list of rules that are going to be evaluated in sequential
 # order when authorization is delegated to Authelia.
