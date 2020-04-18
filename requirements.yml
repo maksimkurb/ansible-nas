@@ -10,3 +10,6 @@
 
 - name: githubixx.ansible_role_wireguard
   version: 6.0.2
+
+- name: softasap.sa-vpn-softether
+  version: 1.3.0
