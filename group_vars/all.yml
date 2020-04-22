@@ -59,9 +59,6 @@ cloudflare_ddns_enabled: false
 cloudcmd_enabled: false
 virtual_desktop_enabled: false
 
-# Notifications
-gotify_enabled: false
-
 # Backup & Restore
 duplicati_enabled: false
 nextcloud_enabled: false
