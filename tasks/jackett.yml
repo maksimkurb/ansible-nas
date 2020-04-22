@@ -10,6 +10,9 @@
   docker_container:
     name: jackett
     image: linuxserver/jackett
+    purge_networks: true
+    networks:
+      - name: web
     volumes:
       - "{{ jackett_data_directory }}:/config:rw"
       - "/etc/localtime:/etc/localtime:ro"
@@ -20,7 +23,7 @@
       TZ: "{{ ansible_nas_timezone }}"
     restart_policy: unless-stopped
     labels:
-      traefik.backend: "jackett"
-      traefik.frontend.rule: "Host:jackett.{{ ansible_nas_domain }}"
       traefik.enable: "{{ jackett_available_externally }}"
-      traefik.port: "9117"
+      traefik.http.services.jackett-svc.loadbalancer.server.port: "9117"
+      traefik.http.routers.jackett.rule: "Host(`jackett.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.jackett.tls: "true"

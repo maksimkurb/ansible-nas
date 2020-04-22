@@ -25,7 +25,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "emby"
-      traefik.frontend.rule: "Host:emby.{{ ansible_nas_domain }}"
       traefik.enable: "{{ emby_available_externally }}"
-      traefik.port: "8096"
+      traefik.http.services.emby-svc.loadbalancer.server.port: "8096"
+      traefik.http.routers.emby.rule: "Host(`emby.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.emby.tls: "true"

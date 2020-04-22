@@ -45,7 +45,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "openhab"
-      traefik.frontend.rule: "Host:openhab.{{ ansible_nas_domain }}"
       traefik.enable: "{{ openhab_available_externally }}"
-      traefik.port: "7777"
+      traefik.http.services.openhab-svc.loadbalancer.server.port: "7777"
+      traefik.http.routers.openhab.rule: "Host(`openhab.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.openhab.tls: "true"

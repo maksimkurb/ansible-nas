@@ -11,6 +11,9 @@
   docker_container:
     name: couchpotato
     image: linuxserver/couchpotato
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ couchpotato_config_directory }}:/config:rw"
@@ -26,7 +29,8 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "couchpotato"
-      traefik.frontend.rule: "Host:couchpotato.{{ ansible_nas_domain }}"
       traefik.enable: "{{ couchpotato_available_externally }}"
-      traefik.port: "5050"
+      traefik.http.services.couchpotato-svc.loadbalancer.server.port: "5050"
+      traefik.http.routers.couchpotato.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
+      traefik.http.routers.couchpotato.rule: "Host(`couchpotato.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.couchpotato.tls: "true"

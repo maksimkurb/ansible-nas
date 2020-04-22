@@ -1,0 +1,54 @@
+---
+- name: Create qBittorrent Directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    # mode: 0755
+  with_items:
+    - "{{ qbittorrent_config_directory }}"
+    - "{{ qbittorrent_config_directory }}/qBittorrent"
+    - "{{ qbittorrent_download_directory }}"
+    - "{{ qbittorrent_watch_directory }}"
+
+# If using LDAP, After first login, change admin password and enable ignoring auth for several subnets:
+# 172.16.0.0/12
+
+- name: Check if qBittorrent config exists
+  stat: path={{ qbittorrent_config_directory }}/qBittorrent/qBittorrent.conf
+  register: qbittorrent_conf
+
+- name: Template qBittorrent config (if not exists)
+  template:
+    src: qbittorrent/qBittorrent.conf
+    dest: "{{ qbittorrent_config_directory }}/qBittorrent/qBittorrent.conf"
+  when: not qbittorrent_conf.stat.exists
+
+- name: qBittorrent Docker Container
+  docker_container:
+    name: qbittorrent
+    image: linuxserver/qbittorrent
+    purge_networks: true
+    networks:
+      - name: web
+    pull: true
+    volumes:
+      - "{{ qbittorrent_config_directory }}:/config:rw"
+      - "{{ qbittorrent_download_directory }}:/downloads:rw"
+      - "{{ qbittorrent_watch_directory }}:/watch:rw"
+    ports:
+      - "{{ qbittorrent_webui_port }}:8080"
+      - "{{ qbittorrent_external_port }}:6881"
+      - "{{ qbittorrent_external_port }}:6881/udp"
+    env:
+      TZ: "{{ ansible_nas_timezone }}"
+      PUID: "{{ qbittorrent_user_id }}"
+      PGID: "{{ qbittorrent_group_id }}"
+      UMASK_SET: "022"
+    restart_policy: unless-stopped
+    memory: 1g
+    labels:
+      traefik.enable: "{{ qbittorrent_available_externally }}"
+      traefik.http.services.qbittorrent-svc.loadbalancer.server.port: "8080"
+      traefik.http.routers.qbittorrent.rule: "Host(`qbittorrent.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.qbittorrent.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
+      traefik.http.routers.qbittorrent.tls: "true"

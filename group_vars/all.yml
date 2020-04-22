@@ -16,11 +16,10 @@
 ###
 
 # Database
-postges_enabled: false # Highly recommended to enable and connect it to another services
+postgres_enabled: true # Highly recommended to enable and connect it to another services
 
 # Downloading
-transmission_with_openvpn_enabled: false # Please see docs about how to set VPN credentials
-transmission_enabled: false
+qbittorrent_enabled: false
 nzbget_enabled: false
 pyload_enabled: false
 
@@ -33,7 +32,6 @@ sonarr_enabled: false # tv
 sickchill_enabled: false
 couchpotato_enabled: false
 radarr_enabled: false
-get_iplayer_enabled: false
 jackett_enabled: false
 minidlna_enabled: false
 jellyfin_enabled: false
@@ -61,6 +59,9 @@ cloudflare_ddns_enabled: false
 cloudcmd_enabled: false
 virtual_desktop_enabled: false
 
+# Notifications
+gotify_enabled: false
+
 # Backup & Restore
 duplicati_enabled: false
 nextcloud_enabled: false
@@ -77,8 +78,7 @@ thelounge_enabled: false
 # Password Management
 bitwarden_enabled: false
 
-# SSO
-keycloak_enabled: false
+# Users & SSO
 ldap_enabled: false
 
 # Finance
@@ -101,9 +101,6 @@ ubooquity_enabled: false
 
 # Joomla
 joomla_enabled: false
-
-# SEO
-serposcope_enabled: false
 
 # External Access
 # Traefik will allow access to certain applications externally. To enable this you'll either; a domain name that points to your
@@ -367,31 +364,18 @@ postgres_user: pguser
 postgres_password: "{{ lookup('password', postgres_data_directory + '/creds/pguser_password length=20') }}"
 
 ###
-### Transmission
+### qBitTorrent
 ###
-transmission_available_externally: "false"
-transmission_with_openvpn_available_externally: "false"
-transmission_config_directory: "{{ docker_home }}/transmission/config"
-transmission_download_directory: "{{ downloads_root }}"
-transmission_watch_directory: "{{ torrents_root }}"
-transmission_user_id: "0"
-transmission_group_id: "0"
-transmission_local_network: "192.168.1.0/24"
-transmission_webui_port: "9092"
-transmission_external_port: "51414"
-transmission_openvpn_webui_port: "9091"
-transmission_openvpn_external_port: "51415"
-transmission_openvpn_proxy_port: "3128"
-transmission_openvpn_ratio_limit_enabled: "true"
-transmission_openvpn_ratio_limit: "2"
-
-# Transmission VPN Credentials
-# If you're using Transmission with a VPN, you'll need to set these credentials.
-# See https://github.com/haugene/docker-transmission-openvpn/ for supported VPN providers.
-openvpn_username: leisure-suit-larry
-openvpn_password: secretpassword
-openvpn_provider: AWESOMEVPNPROVIDER
-openvpn_config: United-Kingdom
+qbittorrent_available_externally: "false"
+qbittorrent_with_openvpn_available_externally: "false"
+qbittorrent_config_directory: "{{ docker_home }}/qbittorrent/config"
+qbittorrent_download_directory: "{{ downloads_root }}"
+qbittorrent_watch_directory: "{{ torrents_root }}"
+qbittorrent_user_id: "0"
+qbittorrent_group_id: "0"
+qbittorrent_local_network: "192.168.1.0/24"
+qbittorrent_webui_port: "9092"
+qbittorrent_external_port: "51414" # tcp+udp
 
 ###
 ### Joomla
@@ -640,6 +624,7 @@ ldap_groups:
   - nodered
   - whoami
   - admin
+  - torrent
 
 # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
 # It is the policy applied to any resource if there is no policy to be applied
@@ -681,9 +666,15 @@ ldap_authelia_rules:
 
   - domain: "nodered.{{ ansible_nas_domain }}"
     policy: two_factor
+    subject: "group:nodered"
 
-  - domain: "torrents.{{ ansible_nas_domain }}"
+  - domain: "qbittorrent.{{ ansible_nas_domain }}"
     policy: one_factor
+    subject: "group:torrent"
+
+  - domain: "cloudcmd.{{ ansible_nas_domain }}"
+    policy: two_factor
+    subject: "group:admin"
 
 ###
 ### nginx
@@ -740,7 +731,7 @@ watchtower_cron_schedule: 0 0 5 * * *
 watchtower_command: "--schedule '{{ watchtower_cron_schedule }}' --debug"
 
 # Email notifications
-# watchtower_command: "--schedule '{{ watchtower_cron_schedule }}' --notifications 'email' --notification-email-from 'ansible@nas.com' --notification-email-to '{{ ansible_nas_email }}' --notification-email-server 'my.email.server.com' --notification-email-server-port '25' --notification-email-server-user 'email_username' --notification-email-server-password 'top-secret'"
+# watchtower_command: "--schedule '{{ watchtower_cron_schedule }}' --notifications 'email' --notification-email-from '{{ smtp_sender }}' --notification-email-to '{{ ansible_nas_email }}' --notification-email-server '{{ smtp_host }}' --notification-email-server-port '{{ smtp_port }}' --notification-email-server-user '{{ smtp_username }}' --notification-email-server-password '{{ smtp_password }}'"
 
 # Slack notifications
 # watchtower_command: "--schedule '{{ watchtower_cron_schedule }}' --notifications 'slack' --notification-slack-hook-url 'https://hooks.slack.com/services/xxx/yyyyyyyyyyyyyyy' --notification-slack-identifier 'ansible-nas'"
@@ -762,13 +753,6 @@ minidlna_media_directory1: "{{ movies_root }}"
 minidlna_media_directory2: "{{ tv_root }}"
 minidlna_friendly_name: "{{ ansible_nas_hostname }}"
 minidlna_port: "8201"
-
-###
-### get_iplayer
-###
-get_iplayer_config_directory: "{{ docker_home }}/get_iplayer"
-get_iplayer_download_directory: "{{ tv_root }}/iplayer_downloads"
-get_iplayer_port: "8182"
 
 ###
 ### mymediaforalexa
@@ -808,7 +792,7 @@ bitwarden_admin_token: qwertyuiop1234567890poiuytrewq0987654321
 # To create a user set this to "true", and reprovision the container by re-running the ansible-nas playbook.
 # Once you have created your user, set to "false" and run one more time.
 # Target just Bitwarden by running: ansible-playbook -i inventory nas.yml -b -K -t bitwarden
-bitwarden_allow_signups: false
+bitwarden_allow_signups: "false"
 
 ###
 ### Firefly

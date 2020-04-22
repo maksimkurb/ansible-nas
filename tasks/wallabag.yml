@@ -10,6 +10,9 @@
   docker_container:
     name: wallabag
     image: wallabag/wallabag:latest
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ wallabag_data_directory }}/data:/var/www/wallabag/data:rw"
@@ -20,9 +23,8 @@
       SYMFONY__ENV__DOMAIN_NAME: "https://wallabag.{{ ansible_nas_domain }}"
     restart_policy: unless-stopped
     labels:
-      traefik.backend: "wallabag"
-      traefik.frontend.rule: "Host:wallabag.{{ ansible_nas_domain }}"
       traefik.enable: "{{ wallabag_available_externally }}"
-      traefik.port: "80"
-      traefik.frontend.headers.SSLRedirect: "true"
+      traefik.http.services.wallabag-svc.loadbalancer.server.port: "80"
+      traefik.http.routers.wallabag.rule: "Host(`wallabag.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.wallabag.tls: "true"
     memory: 1g

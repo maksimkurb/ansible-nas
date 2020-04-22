@@ -12,6 +12,9 @@
   docker_container:
     name: pyload
     image: writl/pyload
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ pyload_config_directory }}:/opt/pyload/pyload-config:rw"
@@ -25,7 +28,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "pyload"
-      traefik.frontend.rule: "Host:pyload.{{ ansible_nas_domain }}"
       traefik.enable: "{{ pyload_available_externally }}"
-      traefik.port: "8000"
+      traefik.http.services.pyload-svc.loadbalancer.server.port: "8000"
+      traefik.http.routers.pyload.rule: "Host(`pyload.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.pyload.tls: "true"

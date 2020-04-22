@@ -59,6 +59,9 @@
   docker_container:
     name: grafana
     image: grafana/grafana
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ grafana_data_directory }}/data:/var/lib/grafana:rw"
@@ -68,7 +71,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "grafana"
-      traefik.frontend.rule: "Host:grafana.{{ ansible_nas_domain }}"
       traefik.enable: "{{ grafana_available_externally }}"
-      traefik.port: "3000"
+      traefik.http.services.grafana-svc.loadbalancer.server.port: "3000"
+      traefik.http.routers.grafana.rule: "Host(`grafana.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.grafana.tls: "true"

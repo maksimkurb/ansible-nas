@@ -24,6 +24,7 @@
       - "{{ airsonic_data_directory }}/playlists:/airsonic/playlists:rw"
       - "{{ airsonic_music_directory }}:/airsonic/music:rw"
       - "{{ airsonic_podcasts_directory }}:/airsonic/podcasts:rw"
+    purge_networks: true
     networks:
       - name: ldap
       - name: web

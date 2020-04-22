@@ -11,6 +11,9 @@
   docker_container:
     name: tautulli
     image: linuxserver/tautulli
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ tautulli_config_directory }}:/config:rw"
@@ -24,7 +27,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "tautulli"
-      traefik.frontend.rule: "Host:tautulli.{{ ansible_nas_domain }}"
       traefik.enable: "{{ tautulli_available_externally }}"
-      traefik.port: "8181"
+      traefik.http.services.tautulli-svc.loadbalancer.server.port: "8181"
+      traefik.http.routers.tautulli.rule: "Host(`tautulli.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.tautulli.tls: "true"

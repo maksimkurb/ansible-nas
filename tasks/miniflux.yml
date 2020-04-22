@@ -5,30 +5,37 @@
   with_items:
     - "{{ miniflux_data_directory }}/postgres"
 
-- name: Create Postgres for Miniflux
-  docker_container:
-    name: miniflux-postgres
-    image: postgres:11.1
-    pull: true
-    volumes:
-      - "{{ miniflux_data_directory }}/postgres:/var/lib/postgresql/data:rw"
-    env:
-      POSTGRES_USER: "miniflux"
-      POSTGRES_PASSWORD: "supersecure"
-    restart_policy: unless-stopped
-    memory: 1g
+- name: Create Miniflux user on Postgres
+  postgresql_user:
+    name: miniflux
+    password: "{{ lookup('password', miniflux_data_directory + '/creds/miniflux_postgres_passwd length=32') }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Create Miniflux database on Postgres
+  postgresql_db:
+    name: miniflux
+    owner: miniflux
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
 
 - name: Create Miniflux container
   docker_container:
     name: miniflux
     image: miniflux/miniflux:latest
+    purge_networks: true
+    networks:
+      - name: web
+      - name: postgres
     pull: true
-    links:
-        - miniflux-postgres:db
     ports:
       - "{{ miniflux_port }}:8080"
     env:
-      DATABASE_URL: "postgres://miniflux:supersecure@db/miniflux?sslmode=disable"
+      DATABASE_URL: "postgres://miniflux:{{ lookup('password', miniflux_data_directory + '/creds/miniflux_postgres_passwd length=32') | urlencode }}@postgres/miniflux?sslmode=disable"
       RUN_MIGRATIONS: "1"
       CREATE_ADMIN: "1"
       ADMIN_USERNAME: "{{ miniflux_admin_username }}"
@@ -36,7 +43,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "miniflux"
-      traefik.frontend.rule: "Host:miniflux.{{ ansible_nas_domain }}"
       traefik.enable: "{{ miniflux_available_externally }}"
-      traefik.port: "8080"
+      traefik.http.services.miniflux-svc.loadbalancer.server.port: "8080"
+      traefik.http.routers.miniflux.rule: "Host(`miniflux.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.miniflux.tls: "true"

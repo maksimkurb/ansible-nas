@@ -3,29 +3,28 @@
     path: "{{ item }}"
     state: directory
   with_items:
-    - "{{ firefly_data_directory }}/postgresql"
-    - "{{ firefly_data_directory }}/mysql"
     - "{{ firefly_data_directory }}/upload"
     - "{{ firefly_data_directory }}/export"
+    - "{{ firefly_data_directory }}/creds"
 
-- name: Create MySQL container for Firefly
-  docker_container:
-    name: firefly-mysql
-    image: mysql:5.7
-    pull: true
-    volumes:
-      - "{{ firefly_data_directory }}/mysql:/var/lib/mysql:rw"
-    env:
-      MYSQL_DATABASE: "firefly"
-      MYSQL_USER: "firefly"
-      MYSQL_PASSWORD: "firefly"
-      MYSQL_ROOT_PASSWORD: "firefly"
-    restart_policy: unless-stopped
-    memory: 1g
+- name: Create Firefly user on Postgres
+  postgresql_user:
+    name: firefly
+    password: "{{ lookup('password', firefly_data_directory + '/creds/firefly_postgres_passwd length=32') }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
 
-- name: Wait for MySQL to init
-  pause:
-    seconds: 30
+- name: Create Firefly database on Postgres
+  postgresql_db:
+    name: firefly
+    owner: firefly
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
 
 - name: Create Firefly III container
   docker_container:
@@ -35,23 +34,24 @@
     volumes:
       - "{{ firefly_data_directory }}/export:/var/www/firefly-iii/storage/export:rw"
       - "{{ firefly_data_directory }}/upload:/var/www/firefly-iii/storage/upload:rw"
-    links:
-      - firefly-mysql:db
+    purge_networks: true
+    networks:
+      - name: postgres
+      - name: web
     ports:
       - "{{ firefly_port }}:80"
     env:
       APP_ENV: "local"
-      APP_KEY: "S0m3R@nd0mString0f32Ch@rsEx@ct1y"
-      DB_CONNECTION: "mysql"
-      DB_HOST: "db"
+      APP_KEY: "{{ lookup('password', firefly_data_directory + '/creds/firefly_app_key length=32') }}"
+      DB_HOST: "postgres"
       DB_DATABASE: "firefly"
       DB_USERNAME: "firefly"
-      DB_PASSWORD: "firefly"
+      DB_PASSWORD: "{{ lookup('password', firefly_data_directory + '/creds/firefly_postgres_passwd length=32') }}"
       TZ: "{{ ansible_nas_timezone }}"
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "firefly"
-      traefik.frontend.rule: "Host:firefly.{{ ansible_nas_domain }}"
       traefik.enable: "{{ firefly_available_externally }}"
-      traefik.port: "80"
+      traefik.http.services.firefly-svc.loadbalancer.server.port: "80"
+      traefik.http.routers.firefly.rule: "Host(`firefly.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.firefly.tls: "true"

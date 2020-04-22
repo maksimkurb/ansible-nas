@@ -22,9 +22,9 @@
     name: postgres
     image: "{{ postgres_docker_image }}"
     pull: true
+    purge_networks: true
     networks:
       - name: postgres
-    networks_cli_compatible: false
     env:
       POSTGRES_USER: "{{ postgres_user }}"
       POSTGRES_PASSWORD: "{{ postgres_password }}"
@@ -35,3 +35,8 @@
       - 5432:5432
     restart_policy: unless-stopped
     memory: 1g
+
+- name: "Wait for Postgres server is up"
+  wait_for:
+    port: 5432
+    timeout: 60

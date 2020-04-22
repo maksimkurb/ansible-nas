@@ -10,6 +10,9 @@
   docker_container:
     name: ubooquity
     image: linuxserver/ubooquity:latest
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ ubooquity_data_directory }}/config:/config:rw"
@@ -26,7 +29,7 @@
       - "{{ ubooquity_port_admin }}:2203"
     restart_policy: unless-stopped
     labels:
-      traefik.backend:  "ubooquity"
-      traefik.frontend.rule: "Host:ubooquity.{{ ansible_nas_domain }}"
       traefik.enable: "{{ ubooquity_available_externally }}"
-      traefik.port: "2202"
+      traefik.http.services.ubooquity-svc.loadbalancer.server.port: "2202"
+      traefik.http.routers.ubooquity.rule: "Host(`ubooquity.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.ubooquity.tls: "true"

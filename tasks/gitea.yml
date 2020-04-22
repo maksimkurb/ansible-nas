@@ -24,51 +24,57 @@
     recurse: yes
   with_items:
     - "{{ gitea_data_directory }}/gitea"
-    - "{{ gitea_data_directory }}/mysql"
+    - "{{ gitea_data_directory }}/creds"
 
-- name: Create MySQL container for Gitea
-  docker_container:
-    name: gitea-mysql
-    image: mysql:5.7
-    pull: true
-    volumes:
-      - "{{ gitea_data_directory }}/mysql:/var/lib/mysql:rw"
-    env:
-      MYSQL_DATABASE: "gitea"
-      MYSQL_USER: "gitea"
-      MYSQL_PASSWORD: "gitea"
-      MYSQL_ROOT_PASSWORD: "gitea"
-    restart_policy: unless-stopped
-    memory: 1g
+- name: Create Gitea user on Postgres
+  postgresql_user:
+    name: gitea
+    password: "{{ lookup('password', gitea_data_directory + '/creds/gitea_postgres_passwd length=32') }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Create Gitea database on Postgres
+  postgresql_db:
+    name: gitea
+    owner: gitea
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
 
 - name: Create Gitea container
   docker_container:
     name: gitea
     image: gitea/gitea:1.6
     pull: true
-    links:
-        - gitea-mysql:db
+    purge_networks: true
+    networks:
+      - name: postgres
+      - name: web
     volumes:
       - "{{ gitea_data_directory }}/gitea:/data:rw"
     ports:
       - "{{ gitea_port_http }}:3000"
       - "{{ gitea_port_ssh }}:22"
     env:
-      DB_TYPE: "mysql"
-      DB_HOST: "db:3306"
+      DB_TYPE: "postgres"
+      DB_HOST: "postgres:5432"
       DB_NAME: "gitea"
       DB_USER: "gitea"
-      DB_PASSWD: "gitea"
+      DB_PASSWD: "{{ lookup('password', gitea_data_directory + '/creds/gitea_postgres_passwd length=32') }}"
       RUN_MODE: "prod"
       SSH_DOMAIN: "{{ ansible_nas_hostname }}"
       SSH_PORT: "{{ gitea_port_ssh }}"
-      ROOT_URL: "http://{{ ansible_nas_hostname }}:{{ gitea_port_http }}/"
+      ROOT_URL: "{% if (gitea_available_externally | bool) %}https://gitea.{{ ansible_nas_domain }}/{% else %}http://{{ ansible_nas_hostname }}:{{ gitea_port_http }}/{% endif %}"
       USER_UID: "1309"
       USER_GID: "1309"
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "gitea"
-      traefik.frontend.rule: "Host:gitea.{{ ansible_nas_domain }}"
       traefik.enable: "{{ gitea_available_externally }}"
-      traefik.port: "3000"
+      traefik.http.services.gitea-svc.loadbalancer.server.port: "3000"
+      traefik.http.routers.gitea.rule: "Host(`gitea.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.gitea.tls: "true"

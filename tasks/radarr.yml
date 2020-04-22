@@ -10,6 +10,9 @@
   docker_container:
     name: radarr
     image: linuxserver/radarr
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ radarr_movies_directory }}:/movies:rw"
@@ -24,7 +27,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "radarr"
-      traefik.frontend.rule: "Host:radarr.{{ ansible_nas_domain }}"
       traefik.enable: "{{ radarr_available_externally }}"
-      traefik.port: "7878"
+      traefik.http.services.radarr-svc.loadbalancer.server.port: "7878"
+      traefik.http.routers.radarr.rule: "Host(`radarr.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.radarr.tls: "true"

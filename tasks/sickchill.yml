@@ -17,6 +17,9 @@
   docker_container:
     name: sickchill
     image: linuxserver/sickchill
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ sickchill_config_directory }}:/config:rw"
@@ -31,7 +34,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "sickchill"
-      traefik.frontend.rule: "Host:sickchill.{{ ansible_nas_domain }}"
       traefik.enable: "{{ sickchill_available_externally }}"
-      traefik.port: "8081"
+      traefik.http.services.sickchill-svc.loadbalancer.server.port: "8081"
+      traefik.http.routers.sickchill.rule: "Host(`sickchill.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.sickchill.tls: "true"

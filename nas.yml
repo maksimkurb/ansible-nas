@@ -68,13 +68,9 @@
       when: (tautulli_enabled | default(False))
       tags: tautulli
 
-    - import_tasks: tasks/transmission.yml
-      when: (transmission_enabled | default(False))
-      tags: transmission
-
-    - import_tasks: tasks/transmission_with_openvpn.yml
-      when: (transmission_with_openvpn_enabled | default(False))
-      tags: transmission
+    - import_tasks: tasks/qbittorrent.yml
+      when: (qbittorrent_enabled | default(False))
+      tags: qbittorrent
 
     - import_tasks: tasks/pyload.yml
       when: (pyload_enabled | default(False))
@@ -156,10 +152,6 @@
       when: (minidlna_enabled | default(False))
       tags: minidlna
 
-    - import_tasks: tasks/get_iplayer.yml
-      when: (get_iplayer_enabled | default(False))
-      tags: get_iplayer
-
     - import_tasks: tasks/mymediaforalexa.yml
       when: (mymediaforalexa_enabled | default(False))
       tags: mymediaforalexa
@@ -227,10 +219,6 @@
     - import_tasks: tasks/lidarr.yml
       when: (lidarr_enabled | default(False))
       tags: lidarr
-
-    - import_tasks: tasks/serposcope.yml
-      when: (serposcope_enabled | default(False))
-      tags: serposcope
 
     - import_tasks: tasks/virtual_desktop.yml
       when: (virtual_desktop_enabled | default(False))

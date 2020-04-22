@@ -10,6 +10,9 @@
   docker_container:
     name: portainer
     image: portainer/portainer
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ portainer_data_directory }}:/data:rw"
@@ -20,7 +23,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "portainer"
-      traefik.frontend.rule: "Host:portainer.{{ ansible_nas_domain }}"
       traefik.enable: "{{ portainer_available_externally }}"
-      traefik.port: "9000"
+      traefik.http.services.portainer-svc.loadbalancer.server.port: "9000"
+      traefik.http.routers.portainer.rule: "Host(`portainer.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.portainer.tls: "true"

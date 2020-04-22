@@ -39,6 +39,7 @@
       - /var/run/docker.sock:/var/run/docker.sock:ro
     env:
       CONTAINERS: "1"
+    purge_networks: true
     networks:
       - name: traefik-docker-socket-proxy
     networks_cli_compatible: false
@@ -50,6 +51,7 @@
     name: traefik
     image: "{{ traefik_docker_image }}"
     pull: true
+    purge_networks: true
     networks:
       - name: web
       - name: traefik-docker-socket-proxy
@@ -77,7 +79,7 @@
 
       traefik.http.routers.api.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
 
-      # Located in keycloak.yml
+      # Located in ldap.yml
       traefik.http.middlewares.auth-sso.forwardAuth.address: "http://authelia:9091/api/verify?rd=https://sso.{{ ansible_nas_domain }}/"
       traefik.http.middlewares.auth-sso.forwardAuth.trustForwardHeader: "true"
       traefik.http.middlewares.auth-sso.forwardAuth.authResponseHeaders: "Remote-User,Remote-Groups"

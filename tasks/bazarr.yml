@@ -10,6 +10,9 @@
   docker_container:
     name: bazarr
     image: linuxserver/bazarr
+    purge_networks: true
+    networks:
+      - name: web
     pull: true
     volumes:
       - "{{ bazarr_tv_directory }}:/tv:rw"
@@ -24,7 +27,8 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "bazarr"
-      traefik.frontend.rule: "Host:bazarr.{{ ansible_nas_domain }}"
       traefik.enable: "{{ bazarr_available_externally }}"
-      traefik.port: "6767"
+      traefik.http.services.bazarr-svc.loadbalancer.server.port: "6767"
+      traefik.http.routers.bazarr.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
+      traefik.http.routers.bazarr.rule: "Host(`bazarr.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.bazarr.tls: "true"

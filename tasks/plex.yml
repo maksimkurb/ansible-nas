@@ -27,7 +27,7 @@
     restart_policy: unless-stopped
     memory: 1g
     labels:
-      traefik.backend: "plex"
-      traefik.frontend.rule: "Host:plex.{{ ansible_nas_domain }}"
       traefik.enable: "{{ plex_available_externally }}"
-      traefik.port: "32400"
+      traefik.http.services.plex-svc.loadbalancer.server.port: "32400"
+      traefik.http.routers.plex.rule: "Host(`plex.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.plex.tls: "true"
