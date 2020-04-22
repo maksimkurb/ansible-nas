@@ -62,12 +62,14 @@ Ansible config and a bunch of Docker containers.
 * [MyMediaForAlexa](https://www.mymediaalexa.com/) - Lets you stream your music collection to your alexa device
 * [Netdata](https://my-netdata.io/) - An extremely comprehensive system monitoring solution
 * [Nextcloud](https://nextcloud.com/) - A self-hosted Dropbox alternative
+* [Node-RED](https://nodered.org/) - A self-hosted flow-based programming tool, e.g. for home automations
 * [NZBget](https://nzbget.net/) - The most efficient usenet downloader
 * [Ombi](https://ombi.io/) - web application that automatically gives your users the ability to request content
 * [openHAB](https://www.openhab.org/) - A vendor and technology agnostic open source automation software for your home
 * [Plex](https://www.plex.tv/) - Plex Media Server
 * [Portainer](https://portainer.io/) - for managing Docker and running custom images
 * [pyLoad](https://pyload.net/) - A download manager with a friendly web-interface
+* [qBittorrent](https://www.qbittorrent.org/) - BitTorrent client
 * [Radarr](https://radarr.video/) - for organising and downloading movies
 * [Serposcope](https://serposcope.serphacker.com/en/) - tracker to monitor website ranking
 * [Sickchill](https://sickchill.github.io/) - for managing TV episodes
@@ -77,7 +79,6 @@ Ansible config and a bunch of Docker containers.
 * [The Lounge](https://thelounge.chat) - Web based always-on IRC client
 * [TimeMachine](https://github.com/awlx/samba-timemachine) - Samba-based mac backup server
 * [Traefik](https://traefik.io/) - Web proxy and SSL certificate manager
-* [Transmission](https://transmissionbt.com/) - BitTorrent client (with OpenVPN if you have a supported VPN provider)
 * [Ubooquity](http://vaemendis.net/ubooquity/) - Book and comic server
 * [Virtual Desktop](https://github.com/RattyDAVE/docker-ubuntu-xrdp-mate-custom) - A virtual desktop running on your NAS.
 * [Wallabag](https://wallabag.org/) - Save and classify articles. Read them later.
