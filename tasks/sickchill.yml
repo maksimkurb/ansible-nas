@@ -37,4 +37,5 @@
       traefik.enable: "{{ sickchill_available_externally }}"
       traefik.http.services.sickchill-svc.loadbalancer.server.port: "8081"
       traefik.http.routers.sickchill.rule: "Host(`sickchill.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.sickchill.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
       traefik.http.routers.sickchill.tls: "true"

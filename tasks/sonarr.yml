@@ -30,4 +30,5 @@
       traefik.enable: "{{ sonarr_available_externally }}"
       traefik.http.services.sonarr-svc.loadbalancer.server.port: "8989"
       traefik.http.routers.sonarr.rule: "Host(`sonarr.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.sonarr.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
       traefik.http.routers.sonarr.tls: "true"

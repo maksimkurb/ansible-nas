@@ -1,0 +1,32 @@
+- name: Create Node-RED Directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0777
+  with_items:
+    - "{{ nodered_data_directory }}/data"
+
+- name: Create Node-RED Container
+  docker_container:
+    name: nodered
+    hostname: "{{ ansible_nas_hostname }}.{{ ansible_nas_domain }}"
+    image: "{{ nodered_image }}"
+    purge_networks: true
+    networks:
+      - name: web
+    state: started
+    pull: true
+    env:
+      TZ: "{{ ansible_nas_timezone }}"
+    ports:
+      - "{{ nodered_port }}:1880"
+    volumes:
+      - "{{ nodered_data_directory }}/data:/data"
+    restart_policy: unless-stopped
+    memory: 1g
+    labels:
+      traefik.enable: "{{ nodered_available_externally }}"
+      traefik.http.services.nodered-svc.loadbalancer.server.port: "1880"
+      traefik.http.routers.nodered.rule: "Host(`nodered.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.nodered.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
+      traefik.http.routers.nodered.tls: "true"

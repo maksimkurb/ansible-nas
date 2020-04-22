@@ -23,6 +23,15 @@
     state: present
     login_host: 127.0.0.1
 
+- name: Enable extensions for Miniflux database on Postgres
+  postgresql_ext:
+    name: hstore
+    db: miniflux
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
 - name: Create Miniflux container
   docker_container:
     name: miniflux
@@ -40,6 +49,8 @@
       CREATE_ADMIN: "1"
       ADMIN_USERNAME: "{{ miniflux_admin_username }}"
       ADMIN_PASSWORD: "{{ miniflux_admin_password }}"
+    volumes:
+    - ":/config/nginx/site-confs/default:ro"
     restart_policy: unless-stopped
     memory: 1g
     labels:

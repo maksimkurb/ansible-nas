@@ -89,6 +89,7 @@ homeassistant_enabled: false
 mosquitto_enabled: false
 homebridge_enabled: false
 openhab_enabled: false
+nodered_enabled: false
 
 # Books
 calibre_enabled: false
@@ -347,7 +348,8 @@ traefik_acme_staging: false
 ### Heimdall
 ###
 heimdall_available_externally: "false"
-heimdall_docker_image: linuxserver/heimdall:latest
+# Changed to development until https://github.com/linuxserver/Heimdall/pull/412 will be in release
+heimdall_docker_image: linuxserver/heimdall:development
 heimdall_data_directory: "{{ docker_home }}/heimdall"
 heimdall_port_http: "10080"
 heimdall_port_https: "10443"
@@ -535,6 +537,14 @@ netdata_available_externally: "false"
 netdata_port: "19999"
 
 ###
+### Node-RED
+###
+nodered_available_externally: "false"
+nodered_image: "nodered/node-red"
+nodered_data_directory: "{{ docker_home }}/nodered"
+nodered_port: "1880"
+
+###
 ### OpenVPN
 ###
 openvpn_config_directory: "{{ docker_home }}/openvpn"
@@ -616,17 +626,16 @@ ldap_base_dn: "{{ ldap_domain.split('.') | map('regex_replace', '(.*)', 'dc=\\1'
 
 ldap_groups:
   - nextcloud
-  - nextcloud-limited
   - homeassistant
   - nodered
-  - whoami
   - admin
+  - media-admin
   - torrent
 
 # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
 # It is the policy applied to any resource if there is no policy to be applied
 # to the user.
-ldap_authelia_default_policy: one_factor
+ldap_authelia_default_policy: deny
 
 # With Authelia you can define a list of rules that are going to be evaluated in sequential
 # order when authorization is delegated to Authelia.
@@ -654,12 +663,44 @@ ldap_authelia_rules:
     policy: two_factor
     subject: "group:admin"
 
-  # Using LDAP for nextcloud instead of SSO/SAML because logging out is not working correctly
-  # Because Authelia does not supports true SAML yet, Nextcloud checks X-Forwared-User once and then saves
-  # session cookie. If we re-login with another user in SSO, nextcloud will treat us as previous user because it ignores X-Forwarded-User
-  # if session-cookie exists
-  - domain: "nextcloud.{{ ansible_nas_domain }}"
-    policy: bypass
+  - domain: "bazarr.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:media-admin"
+
+  - domain: "cloudcmd.{{ ansible_nas_domain }}"
+    policy: two_factor
+    subject: "group:admin"
+
+  - domain: "couchpotato.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:media-admin"
+
+  - domain: "duplicati.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:admin"
+
+  - domain: "glances.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:admin"
+
+  - domain: "heimdall.{{ ansible_nas_domain }}"
+    policy: one_factor
+
+  - domain: "jackett.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:media-admin"
+
+  - domain: "lidarr.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:media-admin"
+
+  - domain: "jackett.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:media-admin"
+
+  - domain: "netdata.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:admin"
 
   - domain: "nodered.{{ ansible_nas_domain }}"
     policy: two_factor
@@ -669,9 +710,27 @@ ldap_authelia_rules:
     policy: one_factor
     subject: "group:torrent"
 
-  - domain: "cloudcmd.{{ ansible_nas_domain }}"
-    policy: two_factor
-    subject: "group:admin"
+  - domain: "radarr.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:media-admin"
+
+  - domain: "sickchill.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:media-admin"
+
+  - domain: "sonarr.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:media-admin"
+
+  - domain: "ubooquity.{{ ansible_nas_domain }}"
+    policy: one_factor
+
+  # Using LDAP for nextcloud instead of SSO/SAML because logging out is not working correctly
+  # Because Authelia does not supports true SAML yet, Nextcloud checks X-Forwared-User once and then saves
+  # session cookie. If we re-login with another user in SSO, nextcloud will treat us as previous user because it ignores X-Forwarded-User
+  # if session-cookie exists
+  # - domain: "nextcloud.{{ ansible_nas_domain }}"
+  #   policy: bypass
 
 ###
 ### nginx

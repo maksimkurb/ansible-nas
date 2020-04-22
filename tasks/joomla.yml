@@ -25,6 +25,11 @@
     state: present
     login_host: 127.0.0.1
 
+- name: Template Joomla makedb.php
+  template:
+    src: joomla/makedb.php
+    dest: "{{ joomla_data_directory }}/makedb.php"
+
 - name: Joomla Docker Container
   docker_container:
     name: joomla
@@ -36,6 +41,7 @@
     pull: true
     volumes:
       - "{{ joomla_data_directory }}/www:/var/www/html:rw"
+      - "{{ joomla_data_directory }}/makedb.php:/makedb.php:ro"
     ports:
       - "{{ joomla_port }}:80"
     env:

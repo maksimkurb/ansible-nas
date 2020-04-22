@@ -30,4 +30,5 @@
       traefik.enable: "{{ radarr_available_externally }}"
       traefik.http.services.radarr-svc.loadbalancer.server.port: "7878"
       traefik.http.routers.radarr.rule: "Host(`radarr.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.radarr.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
       traefik.http.routers.radarr.tls: "true"

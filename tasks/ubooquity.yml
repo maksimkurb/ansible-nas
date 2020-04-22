@@ -32,4 +32,7 @@
       traefik.enable: "{{ ubooquity_available_externally }}"
       traefik.http.services.ubooquity-svc.loadbalancer.server.port: "2202"
       traefik.http.routers.ubooquity.rule: "Host(`ubooquity.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.ubooquity.middlewares: "ubooquity-replacepathregex{% if ldap_enabled|default(false)|bool %},auth-sso{% endif %}"
       traefik.http.routers.ubooquity.tls: "true"
+      traefik.http.middlewares.ubooquity-replacepathregex.replacepathregex.regex: "^/(.*)"
+      traefik.http.middlewares.ubooquity-replacepathregex.replacepathregex.replacement: "/ubooquity/$1"

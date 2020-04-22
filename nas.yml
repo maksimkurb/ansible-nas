@@ -96,6 +96,10 @@
       when: (netdata_enabled | default(False))
       tags: netdata
 
+    - import_tasks: tasks/nodered.yml
+      when: (nodered_enabled | default(False))
+      tags: nodered
+
     - import_tasks: tasks/duplicati.yml
       when: (duplicati_enabled | default(False))
       tags: duplicati

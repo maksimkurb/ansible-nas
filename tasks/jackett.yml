@@ -26,4 +26,5 @@
       traefik.enable: "{{ jackett_available_externally }}"
       traefik.http.services.jackett-svc.loadbalancer.server.port: "9117"
       traefik.http.routers.jackett.rule: "Host(`jackett.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.jackett.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
       traefik.http.routers.jackett.tls: "true"

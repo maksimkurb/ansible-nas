@@ -28,4 +28,5 @@
       traefik.enable: "{{ lidarr_available_externally }}"
       traefik.http.services.lidarr-svc.loadbalancer.server.port: "8686"
       traefik.http.routers.lidarr.rule: "Host(`lidarr.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.lidarr.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
       traefik.http.routers.lidarr.tls: "true"
