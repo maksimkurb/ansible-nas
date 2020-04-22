@@ -28,10 +28,6 @@
     - import_tasks: tasks/docker.yml
       tags: docker
 
-    - import_tasks: tasks/portainer.yml
-      when: (portainer_enabled | default(False))
-      tags: portainer
-
     - import_tasks: tasks/traefik.yml
       when: (traefik_enabled | default(False))
       tags: traefik
@@ -43,6 +39,10 @@
     - import_tasks: tasks/ldap.yml
       when: (ldap_enabled | default(False))
       tags: ldap
+
+    - import_tasks: tasks/portainer.yml
+      when: (portainer_enabled | default(False))
+      tags: portainer
 
     - import_tasks: tasks/heimdall.yml
       when: (heimdall_enabled | default(False))
