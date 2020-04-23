@@ -23,6 +23,7 @@
     group: heimdall
   with_items:
     - "{{ heimdall_data_directory }}"
+    - "{{ heimdall_data_directory }}/nginx/site-confs"
 
 - name: Template Heimdall nginx config
   template:

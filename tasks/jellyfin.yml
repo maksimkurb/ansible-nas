@@ -26,6 +26,7 @@
     memory: 1g
     labels:
       traefik.enable: "{{ jellyfin_available_externally }}"
+      traefik.docker.network: ""
       traefik.http.services.jellyfin-svc.loadbalancer.server.port: "8096"
       traefik.http.routers.jellyfin.rule: "Host(`jellyfin.{{ ansible_nas_domain }}`)"
       traefik.http.routers.jellyfin.tls: "true"

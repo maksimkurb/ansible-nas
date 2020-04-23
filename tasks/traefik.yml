@@ -63,7 +63,7 @@
       - "{{ traefik_data_directory }}/traefik.yml:/etc/traefik/traefik.yml:ro"
       - "{{ traefik_data_directory }}/acme:/acme"
     env:
-      CF_API_EMAIL: "{{ ansible_nas_email }}"
+      CF_API_EMAIL: "{{ cloudflare_email }}"
       CF_API_KEY: "{{ cloudflare_api_key }}"
     etc_hosts:
       host.docker.internal: "172.17.0.1"

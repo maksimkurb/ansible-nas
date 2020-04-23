@@ -104,6 +104,7 @@ gained by automating it. Check out the [docs](https://davestephens.github.io/ans
 ## Installation
 
 See [Installation](https://davestephens.github.io/ansible-nas/installation/).
+After installation, make sure to save `generated/` folder in a safe place. Also do not move if from `ansible-nas` folder if you want to run this playbook again. It contains passwords to database, LDAP and other installed services.
 
 ## Upgrading
 

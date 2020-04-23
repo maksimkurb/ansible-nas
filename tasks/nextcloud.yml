@@ -11,7 +11,7 @@
 - name: Create Nextcloud user on Postgres
   postgresql_user:
     name: nextcloud
-    password: "{{ lookup('password', nextcloud_data_directory + '/creds/nextcloud_postgres_passwd length=32') }}"
+    password: "{{ lookup('password', creds_direcrory +'/nextcloud/nextcloud_postgres_passwd length=32') }}"
     login_user: "{{ postgres_user }}"
     login_password: "{{ postgres_password }}"
     state: present
@@ -58,14 +58,14 @@
       POSTGRES_HOST: "postgres"
       POSTGRES_DB: "nextcloud"
       POSTGRES_USER: "nextcloud"
-      POSTGRES_PASSWORD: "{{ lookup('password', nextcloud_data_directory + '/creds/nextcloud_postgres_passwd length=32') }}"
+      POSTGRES_PASSWORD: "{{ lookup('password', creds_direcrory +'/nextcloud/nextcloud_postgres_passwd length=32') }}"
       NEXTCLOUD_TRUSTED_DOMAINS: "nextcloud.{{ ansible_nas_domain }}"
 
       REDIS_HOST: "redis-nextcloud"
       REDIS_HOST_PORT: "6379"
 
       NEXTCLOUD_ADMIN_USER: "internal-admin"
-      NEXTCLOUD_ADMIN_PASSWORD: "{{ lookup('password', nextcloud_data_directory + '/creds/internal_admin_user_passwd length=32') }}"
+      NEXTCLOUD_ADMIN_PASSWORD: "{{ lookup('password', creds_direcrory +'/nextcloud/internal_admin_user_passwd length=32') }}"
 
       SMTP_SECURE: "true"
       SMTP_HOST: "{{ smtp_host }}"
@@ -86,7 +86,7 @@
   shell: "docker logs nextcloud"
   register: nc_init_result
   until: nc_init_result.stderr.find("apache2 -D FOREGROUND") != -1
-  retries: 30
+  retries: 60
   delay: 3
 
 - name: Check if nextcloud was already configured by ansible-nas

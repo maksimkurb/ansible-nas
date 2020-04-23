@@ -8,7 +8,7 @@
 - name: Create Miniflux user on Postgres
   postgresql_user:
     name: miniflux
-    password: "{{ lookup('password', miniflux_data_directory + '/creds/miniflux_postgres_passwd length=32') }}"
+    password: "{{ lookup('password', creds_direcrory +'/miniflux/miniflux_postgres_passwd length=32') }}"
     login_user: "{{ postgres_user }}"
     login_password: "{{ postgres_password }}"
     state: present

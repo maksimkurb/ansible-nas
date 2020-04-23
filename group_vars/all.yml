@@ -11,6 +11,8 @@
 ### Add your customisations to inventories/<your_inventory>/group_vars/nas.yml
 ###
 
+creds_direcrory: "generated/creds/{{ inventory_hostname }}"
+
 ###
 ### Ansible-NAS Applications
 ###
@@ -360,7 +362,7 @@ heimdall_port_https: "10443"
 postgres_docker_image: postgres:12.0
 postgres_data_directory: "{{ docker_home }}/postgres"
 postgres_user: pguser
-postgres_password: "{{ lookup('password', postgres_data_directory + '/creds/pguser_password length=20') }}"
+postgres_password: "{{ lookup('password', creds_direcrory +'/postgres/pguser_password length=20') }}"
 
 ###
 ### qBitTorrent

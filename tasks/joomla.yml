@@ -10,7 +10,7 @@
 - name: Create Joomla user on Postgres
   postgresql_user:
     name: joomla
-    password: "{{ lookup('password', joomla_data_directory + '/creds/joomla_postgres_passwd length=32') }}"
+    password: "{{ lookup('password', creds_direcrory +'/joomla/joomla_postgres_passwd length=32') }}"
     login_user: "{{ postgres_user }}"
     login_password: "{{ postgres_password }}"
     state: present
@@ -48,7 +48,7 @@
       JOOMLA_DB_HOST: "postgres"
       JOOMLA_DB_USER: "joomla"
       JOOMLA_DB_NAME: "joomla"
-      JOOMLA_DB_PASSWORD: "{{ lookup('password', joomla_data_directory + '/creds/joomla_postgres_passwd length=32') }}"
+      JOOMLA_DB_PASSWORD: "{{ lookup('password', creds_direcrory +'/joomla/joomla_postgres_passwd length=32') }}"
     restart_policy: unless-stopped
     memory: 1g
     labels:

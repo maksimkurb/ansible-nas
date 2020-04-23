@@ -10,7 +10,7 @@
 - name: Create Firefly user on Postgres
   postgresql_user:
     name: firefly
-    password: "{{ lookup('password', firefly_data_directory + '/creds/firefly_postgres_passwd length=32') }}"
+    password: "{{ lookup('password', creds_direcrory +'/firefly/firefly_postgres_passwd length=32') }}"
     login_user: "{{ postgres_user }}"
     login_password: "{{ postgres_password }}"
     state: present
@@ -42,12 +42,12 @@
       - "{{ firefly_port }}:80"
     env:
       APP_ENV: "local"
-      APP_KEY: "{{ lookup('password', firefly_data_directory + '/creds/firefly_app_key length=32') }}"
+      APP_KEY: "{{ lookup('password', creds_direcrory +'/firefly/firefly_app_key length=32') }}"
       DB_HOST: "postgres"
       DB_PORT: "5432"
       DB_DATABASE: "firefly"
       DB_USERNAME: "firefly"
-      DB_PASSWORD: "{{ lookup('password', firefly_data_directory + '/creds/firefly_postgres_passwd length=32') }}"
+      DB_PASSWORD: "{{ lookup('password', creds_direcrory +'/firefly/firefly_postgres_passwd length=32') }}"
       TRUSTED_PROXIES: "172.16.0.0/12"
       TZ: "{{ ansible_nas_timezone }}"
     restart_policy: unless-stopped

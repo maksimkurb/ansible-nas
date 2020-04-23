@@ -29,7 +29,7 @@
 - name: Create Gitea user on Postgres
   postgresql_user:
     name: gitea
-    password: "{{ lookup('password', gitea_data_directory + '/creds/gitea_postgres_passwd length=32') }}"
+    password: "{{ lookup('password', creds_direcrory +'/gitea/gitea_postgres_passwd length=32') }}"
     login_user: "{{ postgres_user }}"
     login_password: "{{ postgres_password }}"
     state: present
@@ -64,7 +64,7 @@
       DB_HOST: "postgres:5432"
       DB_NAME: "gitea"
       DB_USER: "gitea"
-      DB_PASSWD: "{{ lookup('password', gitea_data_directory + '/creds/gitea_postgres_passwd length=32') }}"
+      DB_PASSWD: "{{ lookup('password', creds_direcrory +'/gitea/gitea_postgres_passwd length=32') }}"
       RUN_MODE: "prod"
       SSH_DOMAIN: "{{ ansible_nas_hostname }}"
       SSH_PORT: "{{ gitea_port_ssh }}"

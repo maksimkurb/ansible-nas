@@ -120,10 +120,10 @@
       LDAP_DOMAIN: "{{ ldap_domain }}"
       LDAP_BASE_DN: "{{ ldap_base_dn }}"
 
-      LDAP_ADMIN_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
-      LDAP_CONFIG_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_config_passwd length=32') }}"
+      LDAP_ADMIN_PASSWORD: "{{ lookup('password', creds_direcrory +'/ldap/ldap_admin_passwd length=32') }}"
+      LDAP_CONFIG_PASSWORD: "{{ lookup('password', creds_direcrory +'/ldap/ldap_config_passwd length=32') }}"
       LDAP_READONLY_USER: "true"
-      LDAP_READONLY_USER_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_readonly_passwd length=32') }}"
+      LDAP_READONLY_USER_PASSWORD: "{{ lookup('password', creds_direcrory +'/ldap/ldap_readonly_passwd length=32') }}"
 
       LDAP_TLS: "true"
       LDAP_TLS_CRT_FILENAME: "ldap.crt"
@@ -179,7 +179,7 @@
     server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
     state: present
     bind_dn: "cn=admin,{{ ldap_base_dn }}"
-    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    bind_pw: "{{ lookup('password', creds_direcrory +'/ldap/ldap_admin_passwd length=32') }}"
     validate_certs: no
 
 - name: "Create LDAP organisational units"
@@ -189,7 +189,7 @@
     server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
     state: present
     bind_dn: "cn=admin,{{ ldap_base_dn }}"
-    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    bind_pw: "{{ lookup('password', creds_direcrory +'/ldap/ldap_admin_passwd length=32') }}"
     validate_certs: no
   loop:
     - users
@@ -208,16 +208,16 @@
     server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
     state: present
     bind_dn: "cn=admin,{{ ldap_base_dn }}"
-    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    bind_pw: "{{ lookup('password', creds_direcrory +'/ldap/ldap_admin_passwd length=32') }}"
     validate_certs: no
 
 - name: "Set password for LDAP root user"
   ldap_passwd:
     dn: "cn=root,ou=users,{{ ldap_base_dn }}"
-    passwd: "{{ lookup('password', ldap_data_directory + '/creds/ldap_root_user_passwd length=32') }}"
+    passwd: "{{ lookup('password', creds_direcrory +'/ldap/ldap_root_user_passwd length=32') }}"
     server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
     bind_dn: "cn=admin,{{ ldap_base_dn }}"
-    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    bind_pw: "{{ lookup('password', creds_direcrory +'/ldap/ldap_admin_passwd length=32') }}"
     validate_certs: no
 
 - name: "Create LDAP groups"
@@ -230,7 +230,7 @@
     server_uri: "ldaps://localhost:{{ ldap_port_ssl }}"
     state: present
     bind_dn: "cn=admin,{{ ldap_base_dn }}"
-    bind_pw: "{{ lookup('password', ldap_data_directory + '/creds/ldap_admin_passwd length=32') }}"
+    bind_pw: "{{ lookup('password', creds_direcrory +'/ldap/ldap_admin_passwd length=32') }}"
     validate_certs: no
   loop: "{{ ldap_groups }}"
 
@@ -263,7 +263,7 @@
 - name: Create Authelia user on Postgres
   postgresql_user:
     name: authelia
-    password: "{{ lookup('password', ldap_data_directory + '/creds/authelia_postgres_passwd length=32') }}"
+    password: "{{ lookup('password', creds_direcrory +'/ldap/authelia_postgres_passwd length=32') }}"
     login_user: "{{ postgres_user }}"
     login_password: "{{ postgres_password }}"
     state: present
@@ -303,8 +303,8 @@
     env:
       AUTHELIA_JWT_SECRET: "{{ lookup('password', ldap_data_directory + '/creds/authelia_jwt_secret length=32')  }}"
       AUTHELIA_SESSION_SECRET: "{{ lookup('password', ldap_data_directory + '/creds/authelia_session_secret length=32')  }}"
-      AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/ldap_readonly_passwd length=32') }}"
-      AUTHELIA_STORAGE_POSTGRES_PASSWORD: "{{ lookup('password', ldap_data_directory + '/creds/authelia_postgres_passwd length=32') }}"
+      AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD: "{{ lookup('password', creds_direcrory +'/ldap/ldap_readonly_passwd length=32') }}"
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD: "{{ lookup('password', creds_direcrory +'/ldap/authelia_postgres_passwd length=32') }}"
       AUTHELIA_NOTIFIER_SMTP_PASSWORD: "{{ smtp_password }}"
     networks:
       - name: ldap

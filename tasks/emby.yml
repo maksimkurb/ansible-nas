@@ -26,6 +26,7 @@
     memory: 1g
     labels:
       traefik.enable: "{{ emby_available_externally }}"
+      traefik.docker.network: ""
       traefik.http.services.emby-svc.loadbalancer.server.port: "8096"
       traefik.http.routers.emby.rule: "Host(`emby.{{ ansible_nas_domain }}`)"
       traefik.http.routers.emby.tls: "true"
