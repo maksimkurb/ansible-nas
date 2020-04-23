@@ -29,4 +29,5 @@
       traefik.enable: "{{ nzbget_available_externally }}"
       traefik.http.services.nzbget-svc.loadbalancer.server.port: "6789"
       traefik.http.routers.nzbget.rule: "Host(`nzbget.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.nzbget.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
       traefik.http.routers.nzbget.tls: "true"

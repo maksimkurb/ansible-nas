@@ -704,6 +704,10 @@ ldap_authelia_rules:
     policy: one_factor
     subject: "group:admin"
 
+  - domain: "nzbget.{{ ansible_nas_domain }}"
+    policy: one_factor
+    subject: "group:media-admin"
+
   - domain: "nodered.{{ ansible_nas_domain }}"
     policy: two_factor
     subject: "group:nodered"
