@@ -631,6 +631,7 @@ ldap_groups:
   - homeassistant
   - nodered
   - admin
+  - media
   - media-admin
   - torrent
 
