@@ -65,6 +65,7 @@
     volumes:
       - "{{ telegraf_data_directory }}/telegraf.conf:/etc/telegraf/telegraf.conf:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "{{ samba_shares_root }}:/samba_shares:ro"
       - "/:/hostfs:ro"
       - "/etc:/hostfs/etc:ro"
       - "/proc:/hostfs/proc:ro"

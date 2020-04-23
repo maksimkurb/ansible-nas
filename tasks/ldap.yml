@@ -147,7 +147,7 @@
       - name: web
     networks_cli_compatible: false
     ports:
-      # - "{{ ldap_port }}:389"
+      - "{{ ldap_port }}:389"
       - "{{ ldap_port_ssl }}:636"
     restart_policy: unless-stopped
 

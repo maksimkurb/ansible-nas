@@ -46,6 +46,7 @@
     pull: true
     volumes:
       - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
+      - "{{ samba_shares_root }}:/mnt/samba:rw"
     ports:
       - "{{ nextcloud_port }}:80"
     purge_networks: true
@@ -77,7 +78,15 @@
       traefik.enable: "{{ nextcloud_available_externally }}"
       traefik.http.services.nextcloud-svc.loadbalancer.server.port: "80"
       traefik.http.routers.nextcloud.rule: "Host(`nextcloud.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.nextcloud.middlewares: "nextcloud-dav,nextcloud-headers"
       traefik.http.routers.nextcloud.tls: "true"
+
+      traefik.http.middlewares.nextcloud-dav.redirectRegex.regex: "https://(.*)/.well-known/(card|cal)dav"
+      traefik.http.middlewares.nextcloud-dav.redirectRegex.replacement: "https://$1/remote.php/dav/"
+      traefik.http.middlewares.nextcloud-dav.redirectRegex.permanent: "true"
+      traefik.http.middlewares.nextcloud-headers.headers.customFrameOptionsValue: "SAMEORIGIN"
+      traefik.http.middlewares.nextcloud-headers.headers.stsSeconds: "15552000"
+      traefik.http.middlewares.nextcloud-headers.headers.stsIncludeSubdomains: "true"
     restart_policy: unless-stopped
     memory: 1g
 

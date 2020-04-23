@@ -88,13 +88,5 @@
       traefik.http.routers.redirs.rule: "hostregexp(`{host:.+}`)"
       traefik.http.routers.redirs.entrypoints: "http"
       traefik.http.routers.redirs.middlewares: "redirect-to-https"
-
-      traefik.http.middlewares.default-headers.headers.customFrameOptionsValue: "SAMEORIGIN"
-      traefik.http.middlewares.default-headers.headers.stsSeconds: "15552000"
-      traefik.http.middlewares.default-headers.headers.stsIncludeSubdomains: "true"
-
-      traefik.http.middlewares.nextcloud-dav.redirectRegex.regex: "https://(.*)/.well-known/(card|cal)dav"
-      traefik.http.middlewares.nextcloud-dav.redirectRegex.replacement: "https://$1/remote.php/dav/"
-      traefik.http.middlewares.nextcloud-dav.redirectRegex.permanent: "true"
     restart_policy: unless-stopped
     memory: 1g

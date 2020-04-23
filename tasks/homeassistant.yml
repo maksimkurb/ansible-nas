@@ -5,6 +5,24 @@
   with_items:
     - "{{ homeassistant_data_directory }}/config"
 
+- name: Create HomeAssistant user on Postgres
+  postgresql_user:
+    name: homeassistant
+    password: "{{ lookup('password', creds_direcrory +'/homeassistant/homeassistant_postgres_passwd length=32') }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Create HomeAssistant database on Postgres
+  postgresql_db:
+    name: homeassistant
+    owner: homeassistant
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
 - name: Home Assistant Docker Container
   docker_container:
     name: homeassistant
