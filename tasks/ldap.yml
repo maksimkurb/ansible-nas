@@ -300,12 +300,6 @@
       - "{{ ldap_data_directory }}/authelia/configuration.yml:/etc/authelia/configuration.yml:ro"
     etc_hosts:
       host.docker.internal: "172.17.0.1"
-    env:
-      AUTHELIA_JWT_SECRET: "{{ lookup('password', ldap_data_directory + '/creds/authelia_jwt_secret length=32')  }}"
-      AUTHELIA_SESSION_SECRET: "{{ lookup('password', ldap_data_directory + '/creds/authelia_session_secret length=32')  }}"
-      AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD: "{{ lookup('password', creds_direcrory +'/ldap/ldap_readonly_passwd length=32') }}"
-      AUTHELIA_STORAGE_POSTGRES_PASSWORD: "{{ lookup('password', creds_direcrory +'/ldap/authelia_postgres_passwd length=32') }}"
-      AUTHELIA_NOTIFIER_SMTP_PASSWORD: "{{ smtp_password }}"
     networks:
       - name: ldap
       - name: postgres

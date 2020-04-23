@@ -7,12 +7,12 @@
 port: 9091
 
 # Level of verbosity for logs: info, debug, trace
-logs_level: info
+log_level: info
 
 # The secret used to generate JWT tokens when validating user identity by
 # email confirmation.
 # This secret can also be set using the env variables AUTHELIA_JWT_SECRET
-# jwt_secret: a_very_important_secret # set by env variable
+jwt_secret: "{{ lookup('password', ldap_data_directory + '/creds/authelia_jwt_secret length=32')  }}"
 
 # Default redirection URL
 #
@@ -96,7 +96,7 @@ authentication_backend:
     # The username and password of the admin user.
     user: "cn=readonly,{{ ldap_base_dn }}"
     # This secret can also be set using the env variables AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD
-    # password: password
+    password: "{{ lookup('password', creds_direcrory +'/ldap/ldap_readonly_passwd length=32') }}"
 
   # File backend configuration.
   #
@@ -161,7 +161,7 @@ session:
 
   # The secret to encrypt the session cookie.
   # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET
-  # secret: unsecure_session_secret
+  secret: "{{ lookup('password', ldap_data_directory + '/creds/authelia_session_secret length=32')  }}"
 
   # The time in seconds before the cookie expires and session is reset.
   expiration: 3600 # 1 hour
@@ -209,7 +209,7 @@ storage:
     database: authelia
     username: authelia
     # This secret can also be set using the env variables AUTHELIA_STORAGE_POSTGRES_PASSWORD
-    # password: mypassword
+    password: "{{ lookup('password', creds_direcrory +'/ldap/authelia_postgres_passwd length=32') }}"
 
 # Configuration of the notification system.
 #
@@ -235,7 +235,7 @@ notifier:
   smtp:
     username: "{{ smtp_username }}"
     # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD
-    # password: password
+    password: "{{ smtp_password }}"
     host: "{{ smtp_host }}"
     port: "{{ smtp_port }}"
     sender: "{{ smtp_sender }}"
