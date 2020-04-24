@@ -22,11 +22,17 @@
     - "{{ grafana_data_directory }}/config/provisioning/datasources"
     - "{{ grafana_data_directory }}/config/provisioning/dashboards"
 
+- name: Create Docker stats network
+  docker_network:
+    name: stats
+
 - name: InfluxDB
   docker_container:
     name: influxdb
     image: influxdb
     pull: true
+    networks:
+      - name: stats
     volumes:
       - "{{ influxdb_data_directory }}:/var/lib/influxdb:rw"
     ports:
@@ -41,10 +47,32 @@
     name: hddtemp
     image: drewster727/hddtemp-docker
     pull: true
+    networks:
+      - name: stats
     privileged: true
     restart_policy: unless-stopped
     env:
       HDDTEMP_ARGS: "-q -d -F /dev/sd*"
+      TZ: "{{ ansible_nas_timezone }}"
+    memory: 128m
+
+- name: nut-influxdb-exporter
+  when: stat_ups_nut_enabled
+  docker_container:
+    name: nut-influxdb-exporter
+    image: maihai/nut-influxdb-exporter
+    pull: true
+    networks:
+      - name: stats
+    restart_policy: unless-stopped
+    etc_hosts:
+      host.docker.internal: "{{ host_docker_internal_ip }}"
+    env:
+      INFLUXDB_HOST: influxdb
+      NUT_HOST: "{{ stat_ups_nut_host }}"
+      NUT_PORT: "{{ stat_ups_nut_port | default('3493') }}"
+      UPS_ALIAS: "{{ stat_ups_nut_ups_name }}"
+      WATTS: "{{ stat_ups_nut_ups_watts | default(omit) }}"
       TZ: "{{ ansible_nas_timezone }}"
     memory: 128m
 
@@ -58,8 +86,8 @@
     name: telegraf
     image: telegraf
     pull: true
-    links:
-      - hddtemp:hddtemp
+    networks:
+      - name: stats
     privileged: true
     ipc_mode: host
     volumes:
@@ -103,6 +131,7 @@
     image: grafana/grafana
     purge_networks: true
     networks:
+      - name: stats
       - name: web
     env:
       GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s"

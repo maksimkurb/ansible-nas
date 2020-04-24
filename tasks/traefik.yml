@@ -66,7 +66,7 @@
       CF_API_EMAIL: "{{ cloudflare_email }}"
       CF_API_KEY: "{{ cloudflare_api_key }}"
     etc_hosts:
-      host.docker.internal: "172.17.0.1"
+      host.docker.internal: "{{ host_docker_internal_ip }}"
     labels:
       traefik.enable: "true"
       traefik.http.routers.api.rule: "Host(`traefik.{{ ansible_nas_domain }}`)"

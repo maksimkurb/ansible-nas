@@ -12,6 +12,7 @@
 ###
 
 creds_direcrory: "generated/creds/{{ inventory_hostname }}"
+host_docker_internal_ip: "172.17.0.1"
 
 ###
 ### Ansible-NAS Applications
@@ -577,6 +578,10 @@ grafana_data_directory: "{{ docker_home }}/grafana"
 stat_collection_interval: 15s
 grafana_influxdb_port: "8086"
 grafana_port: "3000"
+# UPS monitoring
+stat_ups_nut_enabled: false
+stat_ups_nut_host: "host.docker.internal"
+stat_ups_nut_ups_name: netups
 
 ###
 ### Gitea

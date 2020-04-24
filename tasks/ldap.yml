@@ -299,7 +299,7 @@
     volumes:
       - "{{ ldap_data_directory }}/authelia/configuration.yml:/etc/authelia/configuration.yml:ro"
     etc_hosts:
-      host.docker.internal: "172.17.0.1"
+      host.docker.internal: "{{ host_docker_internal_ip }}"
     networks:
       - name: ldap
       - name: postgres
