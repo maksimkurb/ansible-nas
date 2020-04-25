@@ -579,6 +579,7 @@ stat_collection_interval: 15s
 grafana_influxdb_port: "8086"
 grafana_port: "3000"
 # UPS monitoring
+stat_ups_nut_collection_interval: "25" # in seconds
 stat_ups_nut_enabled: false
 stat_ups_nut_host: "host.docker.internal"
 stat_ups_nut_ups_name: netups
