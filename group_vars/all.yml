@@ -457,6 +457,10 @@ tautulli_port: "8185"
 duplicati_available_externally: "false"
 duplicati_data_directory: "{{ docker_home }}/duplicati/config"
 duplicati_port: "8200"
+# Duplicati user will be added to the following groups
+duplicati_additional_groups:
+  - name: www-data
+    gid: 33
 
 ###
 ### Sonarr

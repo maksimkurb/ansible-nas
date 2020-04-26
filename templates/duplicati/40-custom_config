@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+{% for group in duplicati_additional_groups %}
+groupadd -f -g {{ group.gid }} {{ group.name }}
+usermod -aG {{ group.name }} abc
+
+{% endfor %}
