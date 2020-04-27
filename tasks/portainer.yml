@@ -13,6 +13,7 @@
     purge_networks: true
     networks:
       - name: web
+      - name: ldap
     pull: true
     volumes:
       - "{{ portainer_data_directory }}:/data:rw"

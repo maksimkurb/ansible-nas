@@ -11,7 +11,7 @@
 ### Add your customisations to inventories/<your_inventory>/group_vars/nas.yml
 ###
 
-creds_direcrory: "generated/creds/{{ inventory_hostname }}"
+creds_direcrory: "generated/{{ inventory_hostname }}/creds"
 host_docker_internal_ip: "172.17.0.1"
 
 ###
@@ -137,11 +137,12 @@ ansible_nas_domain: example.com
 ###
 ### SMTP notifier
 ###
-smtp_host: "smtp.yandex.ru"
+smtp_host: ""
 smtp_port: "587"
 smtp_username: "notify@example.com"
 smtp_password: ""
 smtp_sender: "notify@example.com"
+smtp_secure: "tls"  # "tls" for STARTTLS, "ssl" for TLS/SSL, "" for disabled
 
 ###
 ### Docker
@@ -622,11 +623,25 @@ nextcloud_port: "8080"
 ###
 ### LDAP
 ###
-ldap_available_externally: "false"
 ldap_data_directory: "{{ docker_home }}/ldap"
 ldap_port: "389"
 ldap_port_ssl: "636"
+ldap_port_authelia: "9091"
 ldap_organisation: "Ansible NAS"
+
+ldap_admin_available_externally: "false"
+
+# LDAP Tool Box Self Service Password
+ldap_self_service_image: "tiredofit/self-service-password:5.0.2"
+ldap_self_service_port: "1234"
+ldap_self_service_secret: "{{ lookup('password', creds_direcrory +'/ldap/ldap_self_service_secret length=32') }}"
+ldap_self_service_lang: "en"
+
+ldap_self_service_available_externally: "false"
+ldap_self_service_recaptcha_enable: "false"
+# http://www.google.com/recaptcha
+ldap_self_service_recaptcha_pubkey: ""
+ldap_self_service_recaptcha_privkey: ""
 
 # If your domain is bigger than 2 components (e.g. home.example.com), please set it manually to example.com
 # or ldap will use wrong BASE_DN (dc=home,dc=com instead of dc=home,dc=example,dc=com); ldap_base_dn is ignored due to this issue

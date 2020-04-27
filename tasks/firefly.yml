@@ -5,7 +5,6 @@
   with_items:
     - "{{ firefly_data_directory }}/upload"
     - "{{ firefly_data_directory }}/export"
-    - "{{ firefly_data_directory }}/creds"
 
 - name: Create Firefly user on Postgres
   postgresql_user:

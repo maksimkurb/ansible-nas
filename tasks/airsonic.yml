@@ -13,7 +13,7 @@
 # LDAP URL: ldap://openldap:389/ou=users,dc=example,dc=org
 # LDAP search filter: (&(objectclass=inetOrgPerson)(|(uid={0})(mail={0})))
 # LDAP manager DN: Username: cn=readonly,dc=example,dc=org
-# Password: [located in file docker/ldap/creds/ldap_readonly_passwd]
+# Password: [located in file generated/{host}/creds/ldap/ldap_readonly_passwd]
 - name: Airsonic Docker Container
   docker_container:
     name: airsonic

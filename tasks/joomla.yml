@@ -5,7 +5,6 @@
     state: directory
   with_items:
     - "{{ joomla_data_directory }}/www"
-    - "{{ joomla_data_directory }}/creds"
 
 - name: Create Joomla user on Postgres
   postgresql_user:

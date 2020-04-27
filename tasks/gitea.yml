@@ -24,7 +24,6 @@
     recurse: yes
   with_items:
     - "{{ gitea_data_directory }}/gitea"
-    - "{{ gitea_data_directory }}/creds"
 
 - name: Create Gitea user on Postgres
   postgresql_user:

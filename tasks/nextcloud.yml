@@ -6,7 +6,6 @@
     mode: 0777
   with_items:
     - "{{ nextcloud_data_directory }}/nextcloud"
-    - "{{ nextcloud_data_directory }}/creds"
 
 - name: Create Nextcloud user on Postgres
   postgresql_user:
@@ -68,11 +67,11 @@
       NEXTCLOUD_ADMIN_USER: "internal-admin"
       NEXTCLOUD_ADMIN_PASSWORD: "{{ lookup('password', creds_direcrory +'/nextcloud/internal_admin_user_passwd length=32') }}"
 
-      SMTP_SECURE: "true"
       SMTP_HOST: "{{ smtp_host }}"
       SMTP_PORT: "{{ smtp_port }}"
       SMTP_NAME: "{{ smtp_username }}"
       SMTP_PASSWORD: "{{ smtp_password }}"
+      SMTP_SECURE: "{{ smtp_secure }}"
       MAIL_FROM_ADDRESS: "{{ smtp_sender }}"
     labels:
       traefik.enable: "{{ nextcloud_available_externally }}"
@@ -114,17 +113,6 @@
     - "csrf.optout 1 --value '/^Microsoft-WebDAV-MiniRedir/'"
     - "csrf.optout 2 --value '/KeeWeb\\/\\d+\\.\\d+\\.\\d+/'"
 
-    - "mail_smtpmode --value='smtp'"
-    - "mail_sendmailmode --value='smtp'"
-    - "mail_smtpsecure --value='ssl'"
-    - "mail_smtpauthtype --value='LOGIN'"
-    - "mail_smtpauth --type=integer --value=1"
-    - "mail_from_address --value='{{ smtp_sender.split('@')[0] }}'"
-    - "mail_domain --value='{{ smtp_sender.split('@')[1] }}'"
-    - "mail_smtphost --value='{{ smtp_host }}'"
-    - "mail_smtpport --value='{{ smtp_port }}'"
-    - "mail_smtpname --value='{{ smtp_username }}'"
-
 - name: Set nextcloud smtp password
   when: nc_config_result.stdout.find("true") == -1
   shell: "docker exec -u www-data nextcloud php occ config:system:set mail_smtppassword --value='{{ smtp_password }}'"
@@ -137,6 +125,7 @@
 - name: Configure nextcloud LDAP app
   when: ldap_enabled and nc_config_result.stdout.find("true") == -1
   shell: "docker exec -u www-data nextcloud php occ config:app:set user_ldap {{ item }}"
+  no_log: true
   with_items:
     - "background_sync_interval --value '43200'"
     - "s01ldap_configuration_active --value '1'"
@@ -148,7 +137,7 @@
     - "s01ldap_base --value '{{ ldap_base_dn }}'"
     - "s01ldap_experienced_admin --value '0'"
     - "s01ldap_dn --value 'cn=readonly,{{ ldap_base_dn }}'"
-    - "s01ldap_agent_password --value '{{ lookup('password', ldap_data_directory + '/creds/ldap_readonly_passwd length=32') | b64encode }}'"
+    - "s01ldap_agent_password --value '{{ lookup('password', creds_direcrory +'/ldap/ldap_readonly_passwd length=32') | b64encode }}'"
     - "s01ldap_display_name --value 'displayName'"
     - "s01has_memberof_filter_support --value '1'"
     - "s01ldap_expert_username_attr --value 'cn'"

@@ -138,6 +138,12 @@
       GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s"
       GF_SERVER_DOMAIN: "{{ ('grafana.' + ansible_nas_domain) if (grafana_available_externally | bool) or omit }}"
       GF_USERS_ALLOW_SIGN_UP: "false"
+
+      GF_SMTP_ENABLED: "{{ (smtp_host != '') | string }}"
+      GF_SMTP_HOST: "{{ smtp_host }}:{{ smtp_port }}"
+      GF_SMTP_USER: "{{ smtp_username }}"
+      GF_SMTP_PASSWORD: "{{ smtp_password }}"
+      GF_SMTP_FROM_ADDRESS: "{{ smtp_sender }}" 
     pull: true
     volumes:
       - "{{ grafana_data_directory }}/data:/var/lib/grafana:rw"

@@ -10,7 +10,6 @@
     - "{{ ldap_data_directory }}/ldap"
     - "{{ ldap_data_directory }}/slapd"
     - "{{ ldap_data_directory }}/authelia"
-    - "{{ ldap_data_directory }}/creds"
     - "{{ ldap_data_directory }}/certs"
     - "{{ ldap_data_directory }}/certs-phpldapadmin"
 
@@ -88,6 +87,7 @@
     name: whoami
     image: emilevauge/whoami
     pull: true
+    # restart_policy: unless-stopped
     networks:
       - name: web
     labels:
@@ -251,7 +251,7 @@
       - name: web
     networks_cli_compatible: false
     labels:
-      traefik.enable: "true"
+      traefik.enable: "{{ ldap_admin_available_externally }}"
       traefik.http.services.phpLdapAdmin-svc.loadbalancer.server.port: "80"
       traefik.http.routers.phpLdapAdmin.rule: "Host(`ldap-admin.{{ ansible_nas_domain }}`)"
       traefik.http.routers.phpLdapAdmin.tls: "true"
@@ -290,6 +290,8 @@
     name: authelia
     image: authelia/authelia
     pull: true
+    ports:
+      - "{{ ldap_port_authelia }}:9091"
     labels:
       traefik.enable: "true"
       traefik.http.services.authelia-svc.loadbalancer.server.port: "9091"
@@ -313,3 +315,67 @@
     networks:
       - name: ldap
     restart_policy: unless-stopped
+
+# ================
+# LDAP Tool Box Self Service Password
+# ================
+- name: "LDAP Tool Box Self Service Password container"
+  docker_container:
+    name: ldap-selfservice
+    image: "{{ ldap_self_service_image }}"
+    pull: true
+    restart_policy: unless-stopped
+    ports:
+      - "{{ ldap_self_service_port }}:80"
+    env:
+      LDAP_SERVER: "ldap://openldap:389"
+      LDAP_STARTTLS: "false"
+      LDAP_BINDDN: "cn=admin,{{ ldap_base_dn }}"
+      LDAP_BINDPASS: "{{ lookup('password', creds_direcrory +'/ldap/ldap_admin_passwd length=32') }}"
+      LDAP_BASE_SEARCH: 'ou=users,{{ ldap_base_dn }}'
+      LDAP_FILTER: '(\&(objectclass=inetOrgPerson)(|(\$ldap_login_attribute={login})))'
+      LDAP_LOGIN_ATTRIBUTE: "cn"
+      LDAP_FULLNAME_ATTRIBUTE: "displayName"
+      LDAP_MAIL_ATTRIBUTE: "mail"
+      LDAP_SMS_ATTRIBUTE: "mobile"
+      PASSWORD_HASH: "SSHA"
+
+      PASSWORD_MIN_LENGTH: "8"
+      PASSWORD_MIN_LOWERCASE: "1"
+      PASSWORD_MIN_UPPERCASE: "1"
+      PASSWORD_MIN_DIGIT: "1"
+      PASSWORD_MIN_SPECIAL: "0"
+      PASSWORD_NO_REUSE: "true"
+      PASSWORD_SHOW_POLICY: "never"
+      PASSWORD_USE_PWNED: "false"
+      WHO_CAN_CHANGE_PASSWORD: "user"
+
+      USE_QUESTIONS: "false"
+
+      MAIL_FROM: "{{ smtp_sender }}"
+      NOTIFY_ON_CHANGE: "true"
+      SMTP_AUTH_ON: "true"
+      SMTP_HOST: "{{ smtp_host }}"
+      SMTP_PORT	: "{{ smtp_port }}"
+      SMTP_USER: "{{ smtp_username }}"
+      SMTP_PASS: "{{ smtp_password }}"
+      SMTP_SECURE_TYPE: "{{ smtp_secure }}"
+
+      USE_RECAPTCHA: "{{ ldap_self_service_recaptcha_enable }}"
+      RECAPTCHA_PUB_KEY: "{{ ldap_self_service_recaptcha_pubkey }}"
+      RECAPTCHA_PRIV_KEY: "{{ ldap_self_service_recaptcha_privkey }}"
+
+      IS_BEHIND_PROXY: "{{ ldap_self_service_available_externally }}"
+      SITE_URL: "pass.{{ ansible_nas_domain }}"
+
+      LANG: "{{ ldap_self_service_lang }}"
+
+      SECRETKEY: "{{ ldap_self_service_secret }}"
+    networks:
+      - name: web
+      - name: ldap
+    labels:
+      traefik.enable: "{{ (ldap_self_service_available_externally) }}"
+      traefik.http.services.ldap-selfservice-svc.loadbalancer.server.port: "80"
+      traefik.http.routers.ldap-selfservice.rule: "Host(`pass.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.ldap-selfservice.tls: "true"
