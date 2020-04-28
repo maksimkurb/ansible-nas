@@ -142,7 +142,7 @@ smtp_port: "587"
 smtp_username: "notify@example.com"
 smtp_password: ""
 smtp_sender: "notify@example.com"
-smtp_secure: "tls"  # "tls" for STARTTLS, "ssl" for TLS/SSL, "" for disabled
+smtp_secure: "tls" # "tls" for STARTTLS, "ssl" for TLS/SSL, "" for disabled
 
 ###
 ### Docker

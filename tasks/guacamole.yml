@@ -8,16 +8,70 @@
 
 # docker run -v /home/david/.guac:/config:rw  -p 8080:8080   oznu/guacamole
 
-- name: Guacamole Container
-  docker_container:
+- name: Create Guacamole user on Postgres
+  postgresql_user:
     name: guacamole
-    image: "oznu/guacamole"
+    password: "{{ lookup('password', creds_direcrory +'/guacamole/guacamole_postgres_passwd length=32') }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Create Guacamole database on Postgres
+  postgresql_db:
+    name: guacamole
+    owner: guacamole
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+  register: guacamole_postgres_db_created
+
+- name: Init Guacamole db schema
+  postgresql_query:
+    db: guacamole
+    path_to_script: files/guacamole/initdb.sql
+    login_user: "guacamole"
+    login_password: "{{ lookup('password', creds_direcrory +'/guacamole/guacamole_postgres_passwd length=32') }}"
+    login_host: 127.0.0.1
+  when: guacamole_postgres_db_created.changed
+
+- name: Create Docker Guacamole network
+  docker_network:
+    name: guacamole
+
+- name: Guacd Container
+  docker_container:
+    name: guacd
+    image: "guacamole/guacd"
     purge_networks: true
     networks:
-      - name: web
+      - name: guacamole
     pull: true
     volumes:
       - "{{ guacamole_data_directory }}/config:/config:rw"
+    restart_policy: unless-stopped
+    memory: 1g
+    restart: true
+
+- name: Guacamole Container
+  docker_container:
+    name: guacamole
+    image: "guacamole/guacamole"
+    purge_networks: true
+    networks:
+      - name: web
+      - name: guacamole
+      - name: postgres
+    pull: true
+    env:
+      GUACD_HOSTNAME: "guacd"
+      POSTGRES_HOSTNAME: "postgres"
+      POSTGRES_DATABASE: guacamole
+      POSTGRES_USER: guacamole
+      POSTGRES_PASSWORD: "{{ lookup('password', creds_direcrory +'/guacamole/guacamole_postgres_passwd length=32') }}"
+    volumes:
+      - "{{ guacamole_data_directory }}/config:/root:rw"
     ports:
       - "{{ guacamole_port }}:8080"
     restart_policy: unless-stopped
@@ -27,4 +81,6 @@
       traefik.enable: "{{ guacamole_available_externally }}"
       traefik.http.services.guacamole-svc.loadbalancer.server.port: "8080"
       traefik.http.routers.guacamole.rule: "Host(`guacamole.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.guacamole.middlewares: "guacamole-prefix"
       traefik.http.routers.guacamole.tls: "true"
+      traefik.http.middlewares.guacamole-prefix.addprefix.prefix: "/guacamole"
