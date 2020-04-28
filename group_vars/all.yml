@@ -93,6 +93,7 @@ mosquitto_enabled: false
 homebridge_enabled: false
 openhab_enabled: false
 nodered_enabled: false
+zigbee2mqtt_enabled: false
 
 # Books
 calibre_enabled: false
@@ -932,6 +933,12 @@ calibre_ebook_conversion: "linuxserver/calibre-web:calibre"
 homeassistant_available_externally: "false"
 homeassistant_data_directory: "{{ docker_home }}/homeassistant"
 homeassistant_port: "8123"
+
+###
+### Zigbee2MQTT
+###
+zigbee2mqtt_device: "/dev/ttyACM0"
+zigbee2mqtt_data_directory: "{{ docker_home }}/zigbee2mqtt"
 
 ###
 ### openHAB

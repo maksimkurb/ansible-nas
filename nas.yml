@@ -188,6 +188,10 @@
       when: (homebridge_enabled | default(False))
       tags: homebridge
 
+    - import_tasks: tasks/zigbee2mqtt.yml
+      when: (zigbee2mqtt_enabled | default(False))
+      tags: zigbee2mqtt
+
     - import_tasks: tasks/calibre.yml
       when: (calibre_enabled | default(False))
       tags: calibre

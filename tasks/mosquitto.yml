@@ -8,18 +8,25 @@
     - "{{ mosquitto_data_directory }}/data"
     - "{{ mosquitto_data_directory }}/log"
 
+- name: Create Docker Mosquitto network
+  docker_network:
+    name: mosquitto
+
 - name: Template mosquitto.conf
   copy:
     src: mosquitto/mosquitto.conf
     dest: "{{ mosquitto_data_directory }}/config/mosquitto.conf"
+    force: false
 
 - name: Create Mosquitto container
   docker_container:
     name: mosquitto
     image: eclipse-mosquitto:latest
     pull: true
+    networks:
+      - name: mosquitto
     volumes:
-      - "{{ mosquitto_data_directory }}/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:rw"
+      - "{{ mosquitto_data_directory }}/config:/mosquitto/config:rw"
       - "{{ mosquitto_data_directory }}/data:/mosquitto/data:rw"
       - "{{ mosquitto_data_directory }}/log:/mosquitto/log:rw"
     ports:

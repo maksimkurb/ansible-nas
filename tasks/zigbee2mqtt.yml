@@ -1,0 +1,19 @@
+---
+- name: Create Docker Mosquitto network
+  docker_network:
+    name: mosquitto
+
+- name: Zigbee2MQTT Docker Container
+  docker_container:
+    name: zigbee2mqtt
+    image: koenkk/zigbee2mqtt
+    pull: true
+    networks:
+      - name: mosquitto
+    devices:
+      - "{{ zigbee2mqtt_device }}"
+    volumes:
+      - "{{ zigbee2mqtt_data_directory }}:/app/data"
+    env:
+      TZ: "{{ ansible_nas_timezone }}"
+    memory: 1g
