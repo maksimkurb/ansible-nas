@@ -6,6 +6,10 @@
   with_items:
     - "{{ portainer_data_directory }}"
 
+- name: Ensure LDAP network is present
+  docker_network:
+    name: ldap
+
 - name: Portainer Docker Container
   docker_container:
     name: portainer

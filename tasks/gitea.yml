@@ -43,6 +43,9 @@
     state: present
     login_host: 127.0.0.1
 
+- name: Ensure LDAP network is present
+  docker_network:
+    name: ldap
 
 - name: Create Gitea container
   docker_container:
@@ -52,6 +55,7 @@
     purge_networks: true
     networks:
       - name: postgres
+      - name: ldap
       - name: web
     volumes:
       - "{{ gitea_data_directory }}/gitea:/data:rw"

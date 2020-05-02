@@ -38,6 +38,10 @@
       - name: nextcloud
     restart_policy: unless-stopped
 
+- name: Ensure LDAP network is present
+  docker_network:
+    name: ldap
+
 - name: Nextcloud Docker Container
   docker_container:
     name: nextcloud

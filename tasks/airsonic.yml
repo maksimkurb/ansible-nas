@@ -8,6 +8,10 @@
     - "{{ airsonic_data_directory }}/data"
     - "{{ airsonic_data_directory }}/playlists"
 
+- name: Ensure LDAP network is present
+  docker_network:
+    name: ldap
+
 # How to setup LDAP for airsonic:
 # Settings -> Advanced -> Enable LDAP authentication
 # LDAP URL: ldap://openldap:389/ou=users,dc=example,dc=org
