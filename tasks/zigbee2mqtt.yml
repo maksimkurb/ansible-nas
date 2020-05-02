@@ -8,6 +8,8 @@
     name: zigbee2mqtt
     image: koenkk/zigbee2mqtt
     pull: true
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
     networks:
       - name: mosquitto
     devices:

@@ -143,7 +143,7 @@
       GF_SMTP_HOST: "{{ smtp_host }}:{{ smtp_port }}"
       GF_SMTP_USER: "{{ smtp_username }}"
       GF_SMTP_PASSWORD: "{{ smtp_password }}"
-      GF_SMTP_FROM_ADDRESS: "{{ smtp_sender }}" 
+      GF_SMTP_FROM_ADDRESS: "{{ smtp_sender }}"
     pull: true
     volumes:
       - "{{ grafana_data_directory }}/data:/var/lib/grafana:rw"

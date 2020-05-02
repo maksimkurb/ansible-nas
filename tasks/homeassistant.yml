@@ -40,4 +40,5 @@
       traefik.http.services.homeassistant-svc.loadbalancer.server.port: "8123"
       traefik.http.routers.homeassistant.rule: "Host(`hass.{{ ansible_nas_domain }}`)"
       traefik.http.routers.homeassistant.tls: "true"
+      com.centurylinklabs.watchtower.enable: "false"
     memory: 1g

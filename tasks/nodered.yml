@@ -30,3 +30,4 @@
       traefik.http.routers.nodered.rule: "Host(`nodered.{{ ansible_nas_domain }}`)"
       traefik.http.routers.nodered.middlewares: "{% if ldap_enabled|default(false)|bool %}auth-sso{% endif %}"
       traefik.http.routers.nodered.tls: "true"
+      com.centurylinklabs.watchtower.enable: "false"
