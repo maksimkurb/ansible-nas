@@ -142,9 +142,9 @@
     - "s01ldap_experienced_admin --value '0'"
     - "s01ldap_dn --value 'cn=readonly,{{ ldap_base_dn }}'"
     - "s01ldap_agent_password --value '{{ lookup('password', creds_direcrory +'/ldap/ldap_readonly_passwd length=32') | b64encode }}'"
-    - "s01ldap_display_name --value 'displayName'"
+    - "s01ldap_display_name --value 'cn'"
     - "s01has_memberof_filter_support --value '1'"
-    - "s01ldap_expert_username_attr --value 'cn'"
+    - "s01ldap_expert_username_attr --value 'uid'"
     - "s01ldap_login_filter_mode --value '0'"
     - "s01ldap_email_attr --value 'mail'"
     - "s01ldap_user_filter_mode --value '0'"
@@ -158,7 +158,7 @@
     - "s01ldap_userlist_filter --value '(&(|(objectclass=inetOrgPerson))(|(memberof=cn=nextcloud,ou=groups,{{ ldap_base_dn }})))'"
     - "background_sync_prefix --value 's01'"
     - "s01ldap_loginfilter_email --value '1'"
-    - "s01ldap_login_filter --value '(&(&(|(objectclass=inetOrgPerson))(|(memberof=cn=nextcloud,ou=groups,{{ ldap_base_dn }})))(|(cn=%uid)(|(mailPrimaryAddress=%uid)(mail=%uid))))'"
+    - "s01ldap_login_filter --value '(&(&(|(objectclass=inetOrgPerson))(|(memberof=cn=nextcloud,ou=groups,{{ ldap_base_dn }})))(|(uid=%uid)(|(mailPrimaryAddress=%uid)(mail=%uid))))'"
     - "s01use_memberof_to_detect_membership --value '1'"
 
 # Mark configuration as done to prevent configuration by ansible next time

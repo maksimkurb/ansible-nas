@@ -70,7 +70,7 @@ authentication_backend:
     # insensitive search queries.
     # For you information, Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP
     # usually uses 'uid'
-    username_attribute: cn
+    username_attribute: uid
 
     # The attribute holding the mail address of the user
     mail_attribute: mail
@@ -149,7 +149,7 @@ access_control:
   # to the user.
   default_policy: "{{ ldap_authelia_default_policy | default('deny') }}"
 
-  rules:
+  rules: # Preserve newline
     {{ ldap_authelia_rules | to_nice_yaml | indent(width=4, indentfirst=False) }}
 
 # Configuration of session cookies
@@ -239,6 +239,6 @@ notifier:
     host: "{{ smtp_host }}"
     port: "{{ smtp_port }}"
     sender: "{{ smtp_sender }}"
-    disable_require_tls: {{ (smtp_secure == '') | string | lower }}
+    disable_require_tls: {{ (smtp_secure == '') }}
     ## disable_verify_cert: false
     ## trusted_cert: ""

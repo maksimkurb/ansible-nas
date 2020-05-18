@@ -202,6 +202,7 @@
       - inetOrgPerson
     attributes:
       cn: root
+      uid: root
       givenName: Root
       sn: User
       mail: "root@{{ ldap_domain }}"
@@ -332,10 +333,10 @@
       LDAP_STARTTLS: "false"
       LDAP_BINDDN: "cn=admin,{{ ldap_base_dn }}"
       LDAP_BINDPASS: "{{ lookup('password', creds_direcrory +'/ldap/ldap_admin_passwd length=32') }}"
-      LDAP_BASE_SEARCH: 'ou=users,{{ ldap_base_dn }}'
+      LDAP_BASE_SEARCH: "ou=users,{{ ldap_base_dn }}"
       LDAP_FILTER: '(\&(objectclass=inetOrgPerson)(|(\$ldap_login_attribute={login})))'
-      LDAP_LOGIN_ATTRIBUTE: "cn"
-      LDAP_FULLNAME_ATTRIBUTE: "displayName"
+      LDAP_LOGIN_ATTRIBUTE: "uid"
+      LDAP_FULLNAME_ATTRIBUTE: "cn"
       LDAP_MAIL_ATTRIBUTE: "mail"
       LDAP_SMS_ATTRIBUTE: "mobile"
       PASSWORD_HASH: "SSHA"
@@ -356,7 +357,7 @@
       NOTIFY_ON_CHANGE: "true"
       SMTP_AUTH_ON: "true"
       SMTP_HOST: "{{ smtp_host }}"
-      SMTP_PORT	: "{{ smtp_port }}"
+      SMTP_PORT: "{{ smtp_port }}"
       SMTP_USER: "{{ smtp_username }}"
       SMTP_PASS: "{{ smtp_password }}"
       SMTP_SECURE_TYPE: "{{ smtp_secure }}"
