@@ -4,13 +4,16 @@
     image: vladgh/minidlna
     pull: true
     volumes:
-      - "{{ minidlna_media_directory1 }}:/media1:rw"
-      - "{{ minidlna_media_directory2 }}:/media2:rw"
+      - "{{ minidlna_media_movies }}:/movies:rw"
+      - "{{ minidlna_media_tv }}:/tv_series:rw"
+      - "{{ minidlna_media_music }}:/music:rw"
     ports:
       - "{{ minidlna_port }}:8201"
     env:
-      MINIDLNA_MEDIA_DIR1: "/media1"
-      MINIDLNA_MEDIA_DIR2: "/media2"
+      MINIDLNA_FORCE_SORT_CRITERIA: "+upnp:class,+upnp:originalTrackNumber,+dc:title"
+      MINIDLNA_MEDIA_DIR1: "V,/movies"
+      MINIDLNA_MEDIA_DIR2: "V,/tv_series"
+      MINIDLNA_MEDIA_DIR3: "A,/music"
       MINIDLNA_FRIENDLY_NAME: "{{ minidlna_friendly_name }}"
       MINIDLNA_PORT: "8201"
     network_mode: host

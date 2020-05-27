@@ -838,8 +838,9 @@ timemachine_port: "10445"
 ###
 ### minidlna
 ###
-minidlna_media_directory1: "{{ movies_root }}"
-minidlna_media_directory2: "{{ tv_root }}"
+minidlna_media_movies: "{{ movies_root }}"
+minidlna_media_tv: "{{ tv_root }}"
+minidlna_media_music: "{{ music_root }}"
 minidlna_friendly_name: "{{ ansible_nas_hostname }}"
 minidlna_port: "8201"
 
