@@ -24,6 +24,7 @@
       PGID: "{{ emby_group_id }}"
     restart_policy: unless-stopped
     memory: 1g
+    devices: "{{ emby_devices }}"
     labels:
       traefik.enable: "{{ emby_available_externally }}"
       traefik.docker.network: ""

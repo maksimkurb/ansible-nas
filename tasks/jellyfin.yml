@@ -24,6 +24,7 @@
       PGID: "{{ jellyfin_group_id }}"
     restart_policy: unless-stopped
     memory: 1g
+    devices: "{{ jellyfin_devices }}"
     labels:
       traefik.enable: "{{ jellyfin_available_externally }}"
       traefik.docker.network: ""

@@ -443,6 +443,7 @@ emby_user_id: "0"
 emby_group_id: "0"
 emby_port_http: "8096"
 emby_port_https: "8920"
+emby_devices: []
 
 ###
 ### Tautulli
@@ -965,6 +966,7 @@ jellyfin_user_id: "0"
 jellyfin_group_id: "0"
 jellyfin_port_http: "8896"
 jellyfin_port_https: "8928"
+jellyfin_devices: []
 
 ###
 ### Ubooquity
