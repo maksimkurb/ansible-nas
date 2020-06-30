@@ -11,6 +11,9 @@
     name: mylar
     image: linuxserver/mylar
     pull: true
+    purge_networks: true
+    networks:
+      - name: web
     volumes:
       - "{{ mylar_comics_directory }}:/comics:rw"
       - "{{ mylar_downloads_directory }}:/downloads:rw"

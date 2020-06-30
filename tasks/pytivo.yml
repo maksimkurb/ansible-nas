@@ -12,6 +12,9 @@
     name: pytivo
     image: pinion/docker-pytivo
     pull: true
+    purge_networks: true
+    networks:
+      - name: web
     ports:
       - "9032:9032"
       - "2190:2190/udp"

@@ -12,6 +12,9 @@
     name: utorrent
     image: ekho/utorrent:latest
     pull: true
+    purge_networks: true
+    networks:
+      - name: web
     volumes:
       - "{{ utorrent_download_directory }}:/data:rw"
       - "{{ utorrent_config_directory }}:/utorrent/settings:rw"

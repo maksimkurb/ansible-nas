@@ -12,6 +12,9 @@
     name: krusader
     image: djaydev/krusader:latest
     pull: true
+    purge_networks: true
+    networks:
+      - name: web
     volumes:
       - "{{ krusader_config_directory }}:/config:rw"
       - "{{ krusader_browse_directory }}:/mnt/fs"

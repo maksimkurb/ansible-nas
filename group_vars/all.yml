@@ -789,6 +789,9 @@ ldap_authelia_rules:
   - domain: "heimdall.{{ ansible_nas_domain }}"
     policy: one_factor
 
+  - domain: "organizr.{{ ansible_nas_domain }}"
+    policy: one_factor
+
   - domain: "jackett.{{ ansible_nas_domain }}"
     policy: one_factor
     subject: "group:media-admin"

@@ -18,6 +18,9 @@
     name: youtubedlmaterial
     image: tzahi12345/youtubedl-material:latest
     pull: true
+    purge_networks: true
+    networks:
+      - name: web
     volumes:
       - "{{ youtubedlmaterial_data_directory }}/appdata:/app/appdata:rw"
       - "{{ youtubedlmaterial_dl_audio_directory }}:/app/audio:rw"
