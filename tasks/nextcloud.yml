@@ -51,7 +51,7 @@
 - name: Nextcloud Docker Container
   docker_container:
     name: nextcloud
-    image: nextcloud:18
+    image: nextcloud:19
     pull: true
     volumes:
       - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
@@ -177,7 +177,7 @@
 - name: Nextcloud Cron Docker Container
   docker_container:
     name: nextcloud-cron
-    image: nextcloud:18
+    image: nextcloud:19
     entrypoint: /cron.sh
     volumes:
       - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
