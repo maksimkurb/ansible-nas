@@ -6,6 +6,7 @@
     mode: 0777
   with_items:
     - "{{ nextcloud_data_directory }}/nextcloud"
+    - "{{ nextcloud_data_directory }}/php"
 
 - name: Create Nextcloud user on Postgres
   postgresql_user:
@@ -38,6 +39,11 @@
       - name: nextcloud
     restart_policy: unless-stopped
 
+- name: Template Nextcloud php-custom.ini
+  template:
+    src: nextcloud/php-custom.ini
+    dest: "{{ nextcloud_data_directory }}/php/php-custom.ini"
+
 - name: Ensure LDAP network is present
   docker_network:
     name: ldap
@@ -49,6 +55,7 @@
     pull: true
     volumes:
       - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
+      - "{{ nextcloud_data_directory }}/php/php-custom.ini:/usr/local/etc/php/conf.d/zzz-custom.ini"
       - "{{ samba_shares_root }}:/mnt/samba:rw"
     ports:
       - "{{ nextcloud_port }}:80"
