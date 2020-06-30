@@ -5,6 +5,26 @@ log:
   level: {{ traefik_log_level }}
   format: common
 
+{% if traefik_access_logs_enabled | default(False) %}
+accessLog:
+  filePath: /logs/traefik_access_log.json
+  format: json
+  fields:
+    defaultMode: drop
+    names:
+      ClientHost: keep
+      RequestHost: keep
+      RequestMethod: keep
+      RequestPath: keep
+      OriginStatus: keep
+      ServiceName: keep
+      Duration: keep
+    headers:
+      defaultMode: drop
+      names:
+          User-Agent: keep
+{% endif %}
+
 entryPoints:
   http:
     address: ":{{ traefik_port_http }}"

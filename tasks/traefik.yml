@@ -67,6 +67,7 @@
       - "{{traefik_port_https}}:{{traefik_port_https}}"
     volumes:
       - "{{ traefik_data_directory }}/traefik.yml:/etc/traefik/traefik.yml:ro"
+      - "{{ traefik_data_directory }}/logs:/logs"
       - "{{ traefik_data_directory }}/acme:/acme"
     env:
       CF_API_EMAIL: "{{ cloudflare_email }}"
