@@ -25,6 +25,11 @@
   docker_network:
     name: web
 
+- name: Create Docker stats network
+  docker_network:
+    name: stats
+  when: stats_enabled
+
 - name: Create traefik-docker-socket-proxy network
   docker_network:
     name: traefik-docker-socket-proxy
@@ -55,6 +60,7 @@
     networks:
       - name: web
       - name: traefik-docker-socket-proxy
+      - "{{ ({ 'name': 'stats' }) if (stats_enabled | default(False)) or omit }}"
     networks_cli_compatible: false
     ports:
       - "{{traefik_port_http}}:{{traefik_port_http}}"

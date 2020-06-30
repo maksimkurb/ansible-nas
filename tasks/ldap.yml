@@ -150,6 +150,8 @@
       - "{{ ldap_port }}:389"
       - "{{ ldap_port_ssl }}:636"
     restart_policy: unless-stopped
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
 
 # ================
 # OpenLDAP init basic schema
@@ -289,7 +291,7 @@
 - name: "Authelia container"
   docker_container:
     name: authelia
-    image: authelia/authelia
+    image: authelia/authelia:4
     pull: true
     ports:
       - "{{ ldap_port_authelia }}:9091"
@@ -300,7 +302,7 @@
       traefik.http.routers.authelia.tls: "true"
     restart: yes
     volumes:
-      - "{{ ldap_data_directory }}/authelia/configuration.yml:/etc/authelia/configuration.yml:ro"
+      - "{{ ldap_data_directory }}/authelia/configuration.yml:/config/configuration.yml:ro"
     etc_hosts:
       host.docker.internal: "{{ host_docker_internal_ip }}"
     networks:

@@ -34,6 +34,8 @@
       - 5432:5432
     restart_policy: unless-stopped
     memory: 1g
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
 
 - name: "Wait for Postgres server is up"
   wait_for:

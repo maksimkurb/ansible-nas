@@ -17,6 +17,15 @@ api:
 serversTransport:
   insecureSkipVerify: true
 
+{% if stats_enabled | default(False) %}
+metrics:
+  influxDB:
+    address: "host.docker.internal:8086"
+    protocol: "http"
+    database: "traefik"
+    pushInterval: "{{ stat_traefik_push_interval }}"
+{% endif %}
+
 providers:
   docker:
     endpoint: "tcp://traefik-docker-socket-proxy:2375"
