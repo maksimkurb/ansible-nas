@@ -71,7 +71,8 @@
       INFLUXDB_HOST: influxdb
       NUT_HOST: "{{ stat_ups_nut_host }}"
       NUT_PORT: "{{ stat_ups_nut_port | default('3493') }}"
-      UPS_ALIAS: "{{ stat_ups_nut_ups_name }}"
+      INFLUXDB_DATABASE: "{{ stat_ups_nut_database_name }}"
+      UPS_NAME: "{{ stat_ups_nut_ups_name }}"
       WATTS: "{{ stat_ups_nut_ups_watts | default(omit) }}"
       INTERVAL: "{{ stat_ups_nut_collection_interval }}"
       TZ: "{{ ansible_nas_timezone }}"
