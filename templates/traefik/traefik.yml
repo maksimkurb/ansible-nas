@@ -41,7 +41,7 @@ serversTransport:
 {% if stats_enabled | default(False) %}
 metrics:
   influxDB:
-    address: "host.docker.internal:8086"
+    address: "http://influxdb:8086"
     protocol: "http"
     database: "traefik"
     pushInterval: "{{ stat_traefik_push_interval }}"
