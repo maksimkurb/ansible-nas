@@ -72,6 +72,9 @@ authentication_backend:
     # usually uses 'uid'
     username_attribute: uid
 
+    # The attribute holding the display name of the user. This will be used to greet an authenticated user.
+    display_name_attribute: displayName
+
     # The attribute holding the mail address of the user
     mail_attribute: mail
 
@@ -94,9 +97,9 @@ authentication_backend:
     # The attribute holding the name of the group
     group_name_attribute: cn
     # The username and password of the admin user.
-    user: "cn=readonly,{{ ldap_base_dn }}"
+    user: "cn=admin,{{ ldap_base_dn }}"
     # This secret can also be set using the env variables AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD
-    password: "{{ lookup('password', creds_direcrory +'/ldap/ldap_readonly_passwd length=32') }}"
+    password: "{{ lookup('password', creds_direcrory +'/ldap/ldap_admin_passwd length=32') }}"
 
   # File backend configuration.
   #
@@ -189,14 +192,16 @@ session:
 regulation:
   # The number of failed login attempts before user is banned.
   # Set it to 0 to disable regulation.
-  max_retries: 0
+  max_retries: 5
 
   # The time range during which the user can attempt login before being banned.
   # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
-  find_time: 120
+  # Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  find_time: 2m
 
-  # The length of time before a banned user can login again.
-  ban_time: 300
+  # The length of time before a banned user can sign in again.
+  # Find Time accepts duration notation. See: https://docs.authelia.com/configuration/index.html#duration-notation-format
+  ban_time: 5m
 
 # Configuration of the storage backend used to store data and secrets.
 #

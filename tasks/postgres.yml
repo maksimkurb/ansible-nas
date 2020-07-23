@@ -11,6 +11,7 @@
     # mode: 0755
   with_items:
     - "{{ postgres_data_directory }}/pgdata"
+    - "{{ postgres_data_directory }}/pgbackup"
 
 - name: Create Docker Postgres network
   docker_network:
@@ -36,6 +37,38 @@
     memory: 1g
     labels:
       com.centurylinklabs.watchtower.enable: "false"
+
+- name: Postgres Backup Docker Container
+  docker_container:
+    name: postgres-backup
+    image: "prodrigestivill/postgres-backup-local"
+    pull: true
+    purge_networks: true
+    networks:
+      - name: postgres
+    env:
+      POSTGRES_HOST: "postgres"
+      POSTGRES_DB: "{{ postgres_backup_databases | join(',') }}"
+      POSTGRES_USER: "{{ postgres_user }}"
+      POSTGRES_PASSWORD: "{{ postgres_password }}"
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: "7"
+      BACKUP_KEEP_WEEKS: "4"
+      BACKUP_KEEP_MONTHS: "6"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "{{ postgres_data_directory }}/pgbackup:/backups"
+    restart_policy: unless-stopped
+    memory: 1g
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+  when: (postgres_backup_databases | default([])) | length > 0
+
+- name: Ensure Postgres Backup Docker Container is absent
+  docker_container:
+    name: nginx-proxy
+    state: absent
+  when: (postgres_backup_databases | default([])) | length == 0
 
 - name: "Wait for Postgres server is up"
   wait_for:
