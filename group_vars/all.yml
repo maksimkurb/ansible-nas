@@ -905,6 +905,12 @@ krusader_port_http: "5800"
 krusader_port_vnc: "5900"
 
 ###
+### OpenSpeedTest
+###
+openspeedtest_available_externally: "true"
+openspeedtest_port: "14141"
+
+###
 ### Watchtower
 ###
 # Sets the 6 field cron schedule to use for checks and updates. This will check at 5am daily.
