@@ -751,6 +751,12 @@ ldap_authelia_rules:
   - domain: "public.{{ ansible_nas_domain }}"
     policy: bypass
 
+  - domain: "*.{{ ansible_nas_domain }}"
+    resources:
+      - "^/manifest.json$"
+      - "^/robots.txt$"
+    policy: bypass
+
   - domain: "traefik.{{ ansible_nas_domain }}"
     policy: one_factor
     subject: "group:admin"
