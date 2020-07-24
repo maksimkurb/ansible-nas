@@ -1,20 +1,11 @@
 ---
-- name: Ensure Nginx Docker Container is absent
-  docker_container:
-    name: nginx-proxy
-    state: absent
-
-- name: Nginx Letsencrypt Container is absent
-  docker_container:
-    name: letsencrypt-nginx-proxy-companion
-    state: absent
-
 - name: Create Traefik Directories
   file:
     path: "{{ item }}"
     state: directory
   with_items:
     - "{{ traefik_data_directory }}"
+    - "{{ traefik_data_directory }}/custom"
 
 - name: Template Traefik config.yml
   template:
@@ -67,6 +58,7 @@
       - "{{traefik_port_https}}:{{traefik_port_https}}"
     volumes:
       - "{{ traefik_data_directory }}/traefik.yml:/etc/traefik/traefik.yml:ro"
+      - "{{ traefik_data_directory }}/custom:/etc/traefik/custom:ro"
       - "{{ traefik_data_directory }}/logs:/logs"
       - "{{ traefik_data_directory }}/acme:/acme"
     env:

@@ -1,6 +1,5 @@
 global:
   sendAnonymousUsage: false
-  insecureSNI: true
 
 log:
   level: {{ traefik_log_level }}
@@ -52,6 +51,8 @@ providers:
     endpoint: "tcp://traefik-docker-socket-proxy:2375"
     network: web
     exposedByDefault: false
+  file:
+    directory: /etc/traefik/custom
 
 certificatesResolvers:
   cloudflare:
