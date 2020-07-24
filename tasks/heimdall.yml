@@ -40,6 +40,8 @@
     pull: true
     volumes:
       - "{{ heimdall_data_directory }}:/config:rw"
+    etc_hosts:
+      host.docker.internal: "{{ host_docker_internal_ip }}"
     env:
       PUID: "1310"
       PGID: "1310"
