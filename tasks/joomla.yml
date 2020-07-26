@@ -53,5 +53,5 @@
     labels:
       traefik.enable: "{{ joomla_available_externally }}"
       traefik.http.services.joomla-svc.loadbalancer.server.port: "80"
-      traefik.http.routers.joomla.rule: "Host(`joomla.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.joomla.rule: "Host(`{{ joomla_domain }}`)"
       traefik.http.routers.joomla.tls: "true"
