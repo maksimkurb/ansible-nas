@@ -7,6 +7,10 @@
   with_items:
     - "{{ organizr_data_directory }}"
 
+- name: Ensure LDAP network is present
+  docker_network:
+    name: ldap
+
 - name: Create Organizr container
   docker_container:
     name: organizr

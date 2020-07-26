@@ -6,6 +6,10 @@
   with_items:
     - "{{ joomla_data_directory }}/www"
 
+- name: Ensure LDAP network is present
+  docker_network:
+    name: ldap
+
 - name: Create Joomla user on Postgres
   postgresql_user:
     name: joomla
@@ -35,6 +39,7 @@
     image: joomla
     purge_networks: true
     networks:
+      - name: ldap
       - name: web
       - name: postgres
     pull: true
