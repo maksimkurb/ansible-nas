@@ -84,10 +84,5 @@
       traefik.http.middlewares.auth-sso.forwardAuth.address: "http://authelia:9091/api/verify?rd=https://sso.{{ ansible_nas_domain }}/"
       traefik.http.middlewares.auth-sso.forwardAuth.trustForwardHeader: "true"
       traefik.http.middlewares.auth-sso.forwardAuth.authResponseHeaders: "Remote-User,Remote-Groups"
-
-      traefik.http.middlewares.redirect-to-https.redirectScheme.scheme: "https"
-      traefik.http.routers.redirs.rule: "hostregexp(`{host:.+}`)"
-      traefik.http.routers.redirs.entrypoints: "http"
-      traefik.http.routers.redirs.middlewares: "redirect-to-https"
     restart_policy: unless-stopped
     memory: 1g

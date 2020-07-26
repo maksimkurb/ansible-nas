@@ -26,10 +26,21 @@ accessLog:
 {% endif %}
 
 entryPoints:
-  http:
+  web:
     address: ":{{ traefik_port_http }}"
-  https:
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+    forwardedHeaders:
+      trustedIPs:
+        {{ traefik_forwardedHeaders_truestedIPs | to_nice_yaml | indent(width=8, indentfirst=False) }}
+  websecure:
     address: ":{{ traefik_port_https }}"
+    forwardedHeaders:
+      trustedIPs:
+        {{ traefik_forwardedHeaders_truestedIPs | to_nice_yaml | indent(width=8, indentfirst=False) }}
 
 api:
   dashboard: true
