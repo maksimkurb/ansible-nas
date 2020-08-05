@@ -9,6 +9,8 @@ log:
 accessLog:
   filePath: /logs/traefik_access_log.json
   format: json
+  filters:
+    statusCodes: ["200-299", "300-302", "400-499", "500-599"]
   fields:
     defaultMode: drop
     names:
