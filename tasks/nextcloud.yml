@@ -7,6 +7,7 @@
   with_items:
     - "{{ nextcloud_data_directory }}/nextcloud"
     - "{{ nextcloud_data_directory }}/php"
+    - "{{ nextcloud_data_directory }}/nginx"
 
 - name: Create Nextcloud user on Postgres
   postgresql_user:
@@ -30,9 +31,14 @@
   docker_network:
     name: nextcloud
 
-- name: "Redis for Nextcloud"
+- name: "Ensure old redis container is absent"
   docker_container:
     name: redis-nextcloud
+    state: absent
+
+- name: "Redis for Nextcloud"
+  docker_container:
+    name: nextcloud-redis
     image: redis:alpine
     command: redis-server --requirepass nextcloud
     purge_networks: true
@@ -45,6 +51,17 @@
     src: nextcloud/php-custom.ini
     dest: "{{ nextcloud_data_directory }}/php/php-custom.ini"
 
+- name: Template Nextcloud php-fpm-custom.conf
+  template:
+    src: nextcloud/php-fpm-custom.conf
+    dest: "{{ nextcloud_data_directory }}/php/php-fpm-custom.conf"
+
+- name: Template nginx.conf
+  template:
+    src: nextcloud/nginx.conf
+    dest: "{{ nextcloud_data_directory }}/nginx/nginx.conf"
+
+
 - name: Ensure LDAP network is present
   docker_network:
     name: ldap
@@ -52,20 +69,18 @@
 - name: Nextcloud Docker Container
   docker_container:
     name: nextcloud
-    image: nextcloud:19
+    image: nextcloud:19-fpm
     pull: true
     volumes:
       - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
-      - "{{ nextcloud_data_directory }}/php/php-custom.ini:/usr/local/etc/php/conf.d/zzz-custom.ini"
+      - "{{ nextcloud_data_directory }}/php/php-custom.ini:/usr/local/etc/php/conf.d/zzz-custom.ini:ro"
+      - "{{ nextcloud_data_directory }}/php/php-fpm-custom.conf:/usr/local/etc/php-fpm.d/zzz-custom.conf:ro"
       - "{{ samba_shares_root }}:/mnt/samba:rw"
-    ports:
-      - "{{ nextcloud_port }}:80"
     purge_networks: true
     networks:
       - name: ldap
       - name: postgres
       - name: nextcloud
-      - name: web
     env: &nextcloud-env
       POSTGRES_HOST: "postgres"
       POSTGRES_DB: "nextcloud"
@@ -73,7 +88,7 @@
       POSTGRES_PASSWORD: "{{ lookup('password', creds_direcrory +'/nextcloud/nextcloud_postgres_passwd length=32') }}"
       NEXTCLOUD_TRUSTED_DOMAINS: "nextcloud.{{ ansible_nas_domain }}"
 
-      REDIS_HOST: "redis-nextcloud"
+      REDIS_HOST: "nextcloud-redis"
       REDIS_HOST_PORT: "6379"
       REDIS_HOST_PASSWORD: "nextcloud"
 
@@ -86,16 +101,30 @@
       SMTP_PASSWORD: "{{ smtp_password }}"
       SMTP_SECURE: "{{ smtp_secure }}"
       MAIL_FROM_ADDRESS: "{{ smtp_sender }}"
+    restart_policy: unless-stopped
+    memory: 1g
+
+- name: Nginx for Nextcloud Docker Container
+  docker_container:
+    name: nextcloud-nginx
+    image: nginx
+    pull: true
+    volumes:
+      - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:ro"
+      - "{{ nextcloud_data_directory }}/nginx/nginx.conf:/etc/nginx/nginx.conf"
+    ports:
+      - "{{ nextcloud_port }}:80"
+    purge_networks: true
+    networks:
+      - name: nextcloud
+      - name: web
     labels:
       traefik.enable: "{{ nextcloud_available_externally }}"
       traefik.http.services.nextcloud-svc.loadbalancer.server.port: "80"
       traefik.http.routers.nextcloud.rule: "Host(`nextcloud.{{ ansible_nas_domain }}`)"
-      traefik.http.routers.nextcloud.middlewares: "nextcloud-dav,nextcloud-headers"
+      traefik.http.routers.nextcloud.middlewares: "nextcloud-headers"
       traefik.http.routers.nextcloud.tls: "true"
 
-      traefik.http.middlewares.nextcloud-dav.redirectRegex.regex: "https://(.*)/.well-known/(card|cal)dav"
-      traefik.http.middlewares.nextcloud-dav.redirectRegex.replacement: "https://$1/remote.php/dav/"
-      traefik.http.middlewares.nextcloud-dav.redirectRegex.permanent: "true"
       traefik.http.middlewares.nextcloud-headers.headers.customFrameOptionsValue: "SAMEORIGIN"
       traefik.http.middlewares.nextcloud-headers.headers.stsSeconds: "15552000"
       traefik.http.middlewares.nextcloud-headers.headers.stsIncludeSubdomains: "true"
@@ -106,7 +135,7 @@
 - name: Wait for nextcloud container initialization
   shell: "docker logs nextcloud"
   register: nc_init_result
-  until: nc_init_result.stderr.find("apache2 -D FOREGROUND") != -1
+  until: nc_init_result.stderr.find("fpm is running") != -1
   retries: 60
   delay: 3
 
@@ -179,7 +208,7 @@
 - name: Nextcloud Cron Docker Container
   docker_container:
     name: nextcloud-cron
-    image: nextcloud:19
+    image: nextcloud:19-fpm
     entrypoint: /cron.sh
     volumes:
       - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
