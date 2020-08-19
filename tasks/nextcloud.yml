@@ -33,7 +33,8 @@
 - name: "Redis for Nextcloud"
   docker_container:
     name: redis-nextcloud
-    image: redis
+    image: redis:alpine
+    command: redis-server --requirepass nextcloud
     purge_networks: true
     networks:
       - name: nextcloud
@@ -74,6 +75,7 @@
 
       REDIS_HOST: "redis-nextcloud"
       REDIS_HOST_PORT: "6379"
+      REDIS_HOST_PASSWORD: "nextcloud"
 
       NEXTCLOUD_ADMIN_USER: "internal-admin"
       NEXTCLOUD_ADMIN_PASSWORD: "{{ lookup('password', creds_direcrory +'/nextcloud/internal_admin_user_passwd length=32') }}"
