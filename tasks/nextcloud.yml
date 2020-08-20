@@ -120,7 +120,7 @@
       SMTP_SECURE: "{{ smtp_secure }}"
       MAIL_FROM_ADDRESS: "{{ smtp_sender }}"
     restart_policy: unless-stopped
-    memory: 1g
+    memory: 3g
 
 - name: Nginx for Nextcloud Docker Container
   docker_container:
