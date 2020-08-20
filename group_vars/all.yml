@@ -697,6 +697,10 @@ glances_port_two: "61209"
 nextcloud_available_externally: "false"
 nextcloud_data_directory: "{{ docker_home }}/nextcloud"
 nextcloud_port: "8080"
+nextcloud_base_image: nextcloud:19-fpm
+
+# When using FaceRecognition app in nextcloud
+nextcloud_with_dlib: false
 
 ###
 ### LDAP
