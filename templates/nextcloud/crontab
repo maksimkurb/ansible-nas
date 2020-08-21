@@ -1,0 +1,3 @@
+{% for cron_record in nextcloud_cron_records %}
+{{ cron_record }}
+{% endfor %}

@@ -697,10 +697,14 @@ glances_port_two: "61209"
 nextcloud_available_externally: "false"
 nextcloud_data_directory: "{{ docker_home }}/nextcloud"
 nextcloud_port: "8080"
-nextcloud_base_image: nextcloud:19-fpm
 
-# When using FaceRecognition app in nextcloud
-nextcloud_with_dlib: false
+# use maksimkurb/nextcloud-dlib:19-fpm image for Face Recognition app
+nextcloud_image: nextcloud:19-fpm
+
+nextcloud_cron_records:
+  - "*/5 * * * * php -f /var/www/html/cron.php"
+  #- "*/30 * * * * php -f /var/www/html/occ face:background_job -t 900"
+
 
 ###
 ### LDAP

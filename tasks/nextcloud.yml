@@ -8,7 +8,6 @@
     - "{{ nextcloud_data_directory }}/nextcloud"
     - "{{ nextcloud_data_directory }}/php"
     - "{{ nextcloud_data_directory }}/nginx"
-    - "{{ nextcloud_data_directory }}/build"
 
 - name: Create Nextcloud user on Postgres
   postgresql_user:
@@ -62,23 +61,13 @@
     src: nextcloud/nginx.conf
     dest: "{{ nextcloud_data_directory }}/nginx/nginx.conf"
 
-- name: Template Nextcloud Dockerfile with DLib
+- name: Template Nextcloud crontab file
   template:
-    src: nextcloud/Dockerfile-facerecognition
-    dest: "{{ nextcloud_data_directory }}/build/Dockerfile"
-  when: nextcloud_with_dlib
-
-- name: Build Nextcloud image with DLib
-  docker_image:
-    source: build
-    build:
-      path: "{{ nextcloud_data_directory }}/build"
-      pull: yes
-    name: nextcloud-dlib
-    tag: latest
-    state: present
-    force_source: yes
-  when: nextcloud_with_dlib
+    src: nextcloud/crontab
+    dest: "{{ nextcloud_data_directory }}/crontab"
+    mode: 644
+    owner: root
+    group: root
 
 - name: Ensure LDAP network is present
   docker_network:
@@ -87,8 +76,8 @@
 - name: Nextcloud Docker Container
   docker_container:
     name: nextcloud
-    image: "{% if not nextcloud_with_dlib %}{{ nextcloud_base_image }}{% else %}nextcloud-dlib{% endif %}"
-    pull: "{{ not nextcloud_with_dlib }}"
+    image: "{{ nextcloud_image }}"
+    pull: true
     volumes:
       - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
       - "{{ nextcloud_data_directory }}/php/php-custom.ini:/usr/local/etc/php/conf.d/zzz-custom.ini:ro"
@@ -226,10 +215,11 @@
 - name: Nextcloud Cron Docker Container
   docker_container:
     name: nextcloud-cron
-    image: "{% if not nextcloud_with_dlib %}{{ nextcloud_base_image }}{% else %}nextcloud-dlib{% endif %}"
+    image: "{{ nextcloud_image }}"
     entrypoint: /cron.sh
     volumes:
       - "{{ nextcloud_data_directory }}/nextcloud:/var/www/html:rw"
+      - "{{ nextcloud_data_directory }}/crontab:/var/spool/cron/crontabs/www-data:ro"
     purge_networks: true
     networks:
       - name: ldap
