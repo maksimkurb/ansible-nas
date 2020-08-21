@@ -705,6 +705,13 @@ nextcloud_cron_records:
   - "*/5 * * * * php -f /var/www/html/cron.php"
   #- "*/30 * * * * php -f /var/www/html/occ face:background_job -t 900"
 
+###
+### Seafile
+###
+seafile_available_externally: "false"
+seafile_data_directory: "{{ docker_home }}/seafile"
+seafile_port: "8085"
+seafile_docker_image: "seafileltd/seafile-mc:latest"
 
 ###
 ### LDAP
