@@ -714,6 +714,15 @@ seafile_port: "8085"
 seafile_docker_image: "seafileltd/seafile-mc:latest"
 
 ###
+### FileRun
+###
+filerun_docker_image: "afian/filerun"
+filerun_available_externally: "false"
+filerun_data_directory: "{{ docker_home }}/filerun"
+filerun_port: "8088"
+filerun_root_directory: "{{ filerun_data_directory }}/filerun-data"
+
+###
 ### LDAP
 ###
 ldap_data_directory: "{{ docker_home }}/ldap"

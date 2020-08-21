@@ -144,6 +144,10 @@
       when: (seafile_enabled | default(False))
       tags: seafile
 
+    - import_tasks: tasks/filerun.yml
+      when: (filerun_enabled | default(False))
+      tags: filerun
+
     - import_tasks: tasks/gitea.yml
       when: (gitea_enabled | default(False))
       tags: gitea
