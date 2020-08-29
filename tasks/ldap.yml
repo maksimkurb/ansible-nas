@@ -158,7 +158,7 @@
 # ================
 - name: Install LDAP prerequisites
   apt:
-    name: ["python-ldap", "python3-ldap"]
+    name: ["python3-ldap"]
     state: latest
 
 - name: "Wait for OpenLDAP server is up"
