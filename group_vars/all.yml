@@ -1019,6 +1019,7 @@ bitwarden_allow_signups: "false"
 firefly_available_externally: "false"
 firefly_data_directory: "{{ docker_home }}/firefly"
 firefly_port: "8066"
+firefly_image: "jc5x/firefly-iii:latest"
 
 ###
 ### Nzbget
