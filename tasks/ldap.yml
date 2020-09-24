@@ -258,6 +258,7 @@
       traefik.http.services.phpLdapAdmin-svc.loadbalancer.server.port: "80"
       traefik.http.routers.phpLdapAdmin.rule: "Host(`ldap-admin.{{ ansible_nas_domain }}`)"
       traefik.http.routers.phpLdapAdmin.tls: "true"
+      traefik.http.routers.phpLdapAdmin.middlewares: "auth-sso"
     restart_policy: unless-stopped
 
 # ================
