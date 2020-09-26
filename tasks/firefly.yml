@@ -41,6 +41,7 @@
     env:
       APP_ENV: "local"
       APP_KEY: "{{ lookup('password', creds_direcrory +'/firefly/firefly_app_key length=32') }}"
+      DB_CONNECTION: "pgsql"
       DB_HOST: "postgres"
       DB_PORT: "5432"
       DB_DATABASE: "firefly"

@@ -781,6 +781,7 @@ ldap_authelia_rules:
     resources:
       - "^/manifest.json$"
       - "^/robots.txt$"
+      - "^/favicon.ico$"
     policy: bypass
 
   - domain: "traefik.{{ ansible_nas_domain }}"

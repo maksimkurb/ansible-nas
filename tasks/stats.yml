@@ -139,12 +139,13 @@
       GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s"
       GF_SERVER_DOMAIN: "{{ ('grafana.' + ansible_nas_domain) if (grafana_available_externally | bool) or omit }}"
       GF_USERS_ALLOW_SIGN_UP: "false"
-
       GF_SMTP_ENABLED: "{{ (smtp_host != '') | string }}"
       GF_SMTP_HOST: "{{ smtp_host }}:{{ smtp_port }}"
       GF_SMTP_USER: "{{ smtp_username }}"
       GF_SMTP_PASSWORD: "{{ smtp_password }}"
       GF_SMTP_FROM_ADDRESS: "{{ smtp_sender }}"
+      GF_RENDERING_SERVER_URL: http://grafana-image-renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
     pull: true
     volumes:
       - "{{ grafana_data_directory }}/data:/var/lib/grafana:rw"
@@ -158,3 +159,14 @@
       traefik.http.services.grafana-svc.loadbalancer.server.port: "3000"
       traefik.http.routers.grafana.rule: "Host(`grafana.{{ ansible_nas_domain }}`)"
       traefik.http.routers.grafana.tls: "true"
+
+- name: Grafana Image Renderer
+  docker_container:
+    name: grafana-image-renderer
+    image: grafana/grafana-image-renderer:latest
+    purge_networks: true
+    networks:
+      - name: stats
+    pull: true
+    restart_policy: unless-stopped
+    memory: 512m
