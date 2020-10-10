@@ -27,6 +27,11 @@ accessLog:
           User-Agent: keep
 {% endif %}
 
+{% if traefik_pilot_token is defined and traefik_pilot_token %}
+pilot:
+  token: "{{ traefik_pilot_token }}"
+{% endif %}
+
 entryPoints:
   web:
     address: ":{{ traefik_port_http }}"

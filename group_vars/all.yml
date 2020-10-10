@@ -126,6 +126,7 @@ traefik_port_https: "443"
 traefik_port_ui: "8083"
 traefik_access_logs_enabled: false
 traefik_forwardedHeaders_truestedIPs: []
+traefik_pilot_token: null
 
 ###
 ### General
