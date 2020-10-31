@@ -756,6 +756,7 @@ ldap_base_dn: "{{ ldap_domain.split('.') | map('regex_replace', '(.*)', 'dc=\\1'
 
 ldap_groups:
   - nextcloud
+  - seafile
   - homeassistant
   - nodered
   - admin

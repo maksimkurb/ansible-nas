@@ -66,6 +66,25 @@
     memory: 2g
     labels:
       traefik.enable: "{{ seafile_available_externally }}"
-      traefik.http.services.seafile-svc.loadbalancer.server.port: "80"
-      traefik.http.routers.seafile.rule: "Host(`seafile.{{ ansible_nas_domain }}`)"
-      traefik.http.routers.seafile.tls: "true"
+
+      traefik.http.services.seafile-01seafhttp.loadbalancer.server.port: "8082"
+      traefik.http.middlewares.seafile-seafhttp-stripprefix.stripprefix.prefixes: "/seafhttp"
+      traefik.http.routers.seafile-seafhttp.rule: "Host(`seafile.{{ ansible_nas_domain }}`) && PathPrefix(`/seafhttp`)"
+      traefik.http.routers.seafile-seafhttp.middlewares: "seafile-seafhttp-stripprefix"
+      traefik.http.routers.seafile-seafhttp.service: "seafile-01seafhttp"
+      traefik.http.routers.seafile-seafhttp.tls: "true"
+
+      traefik.http.services.seafile-02seafdav.loadbalancer.server.port: "8080"
+      traefik.http.routers.seafile-seafdav.rule: "Host(`seafile.{{ ansible_nas_domain }}`) && PathPrefix(`/seafdav`)"
+      traefik.http.routers.seafile-seafdav.service: "seafile-02seafdav"
+      traefik.http.routers.seafile-seafdav.tls: "true"
+
+      traefik.http.services.seafile-03media.loadbalancer.server.port: "80"
+      traefik.http.routers.seafile-media.rule: "Host(`seafile.{{ ansible_nas_domain }}`) && PathPrefix(`/media`)"
+      traefik.http.routers.seafile-media.service: "seafile-03media"
+      traefik.http.routers.seafile-media.tls: "true"
+
+      traefik.http.services.seafile-04main.loadbalancer.server.port: "8000"
+      traefik.http.routers.seafile-main.rule: "Host(`seafile.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.seafile-main.service: "seafile-04main"
+      traefik.http.routers.seafile-main.tls: "true"

@@ -48,6 +48,12 @@
       DB_USERNAME: "firefly"
       DB_PASSWORD: "{{ lookup('password', creds_direcrory +'/firefly/firefly_postgres_passwd length=32') }}"
       TRUSTED_PROXIES: "172.16.0.0/12"
+      MAIL_HOST: "{{ smtp_host }}"
+      MAIL_PORT: "{{ smtp_port }}"
+      MAIL_USERNAME: "{{ smtp_username }}"
+      MAIL_PASSWORD: "{{ smtp_password }}"
+      MAIL_FROM: "{{ smtp_sender }}"
+      MAIL_ENCRYPTION: "{{ smtp_secure }}"
       TZ: "{{ ansible_nas_timezone }}"
     restart_policy: unless-stopped
     memory: 1g
