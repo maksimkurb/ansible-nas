@@ -144,6 +144,10 @@
       when: (seafile_enabled | default(False))
       tags: seafile
 
+    - import_tasks: tasks/onlyoffice.yml
+      when: (onlyoffice_enabled | default(False))
+      tags: onlyoffice
+
     - import_tasks: tasks/filerun.yml
       when: (filerun_enabled | default(False))
       tags: filerun

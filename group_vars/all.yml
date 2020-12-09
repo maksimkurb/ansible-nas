@@ -715,6 +715,14 @@ seafile_port: "8085"
 seafile_docker_image: "seafileltd/seafile-mc:latest"
 
 ###
+### OnlyOffice
+###
+onlyoffice_available_externally: "false"
+onlyoffice_data_directory: "{{ docker_home }}/onlyoffice"
+onlyoffice_port_http: "8680"
+onlyoffice_port_https: "8643"
+
+###
 ### FileRun
 ###
 filerun_docker_image: "afian/filerun"
@@ -851,6 +859,10 @@ ldap_authelia_rules:
   - domain: "nodered.{{ ansible_nas_domain }}"
     policy: two_factor
     subject: "group:nodered"
+
+  - domain: "z2m.{{ ansible_nas_domain }}"
+    policy: two_factor
+    subject: "group:admin"
 
   - domain: "qbittorrent.{{ ansible_nas_domain }}"
     policy: one_factor
@@ -1073,6 +1085,10 @@ homeassistant_port: "8123"
 ###
 zigbee2mqtt_device: "/dev/ttyACM0"
 zigbee2mqtt_data_directory: "{{ docker_home }}/zigbee2mqtt"
+zigbee2mqtt_assistant_enabled: false
+zigbee2mqtt_assistant_username: ""
+zigbee2mqtt_assistant_password: ""
+zigbee2mqtt_assistant_available_externally: "false"
 
 ###
 ### openHAB

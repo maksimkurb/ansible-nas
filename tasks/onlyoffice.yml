@@ -1,0 +1,74 @@
+
+---
+- name: Create OnlyOffice Directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ onlyoffice_data_directory }}/logs"
+    - "{{ onlyoffice_data_directory }}/data"
+    - "{{ onlyoffice_data_directory }}/lib"
+    - "{{ onlyoffice_data_directory }}/db"
+
+- name: Ensure LDAP network is present
+  docker_network:
+    name: ldap
+
+- name: Create OnlyOffice user on Postgres
+  postgresql_user:
+    name: onlyoffice
+    password: "{{ lookup('password', creds_direcrory +'/onlyoffice/onlyoffice_postgres_passwd length=32') }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Create OnlyOffice database on Postgres
+  postgresql_db:
+    name: onlyoffice
+    owner: onlyoffice
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    state: present
+    login_host: 127.0.0.1
+
+- name: Create OnlyOffice container
+  docker_container:
+    name: onlyoffice
+    image: onlyoffice/documentserver
+    pull: true
+    etc_hosts:
+      host.docker.internal: "{{ host_docker_internal_ip }}"
+    purge_networks: true
+    networks:
+      - name: web
+      - name: postgres
+      - name: ldap
+    volumes:
+      - "{{ onlyoffice_data_directory }}/logs:/var/log/onlyoffice"
+      - "{{ onlyoffice_data_directory }}/data:/var/www/onlyoffice/Data"
+      - "{{ onlyoffice_data_directory }}/lib:/var/lib/onlyoffice"
+    env:
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_NAME: "onlyoffice"
+      DB_USER: "onlyoffice"
+      DB_PWD: "{{ lookup('password', creds_direcrory +'/onlyoffice/onlyoffice_postgres_passwd length=32') }}"
+      JWT_ENABLED: "true"
+      JWT_SECRET: "{{ lookup('password', creds_direcrory +'/onlyoffice/onlyoffice_jwt_secret length=32') }}"
+      TZ: "{{ ansible_nas_timezone }}"
+    ports:
+      - "{{ onlyoffice_port_http }}:80"
+      - "{{ onlyoffice_port_https }}:443"
+    restart_policy: unless-stopped
+    memory: 1g
+    labels:
+      traefik.enable: "{{ onlyoffice_available_externally }}"
+      traefik.http.services.onlyoffice-svc.loadbalancer.server.port: "80"
+      traefik.http.routers.onlyoffice.rule: "Host(`onlyoffice.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.onlyoffice.service: "onlyoffice-svc"
+      traefik.http.routers.onlyoffice.middlewares: "onlyoffice-header"
+      traefik.http.routers.onlyoffice.tls: "true"
+      traefik.http.middlewares.onlyoffice-header.headers.referrerPolicy: no-referrer
+      traefik.http.middlewares.onlyoffice-header.headers.browserXssFilter: "true"
+      traefik.http.middlewares.onlyoffice-header.headers.customRequestHeaders.X-Forwarded-Proto: https
