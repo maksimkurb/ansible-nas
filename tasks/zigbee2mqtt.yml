@@ -9,6 +9,7 @@
     image: koenkk/zigbee2mqtt
     pull: true
     purge_networks: true
+    restart_policy: unless-stopped
     networks:
       - name: web
       - name: mosquitto
