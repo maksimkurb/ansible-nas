@@ -29,6 +29,7 @@
     memory: 2g
     labels:
       traefik.enable: "{{ plex_available_externally }}"
+      traefik.docker.network: ""
       traefik.http.services.plex-svc.loadbalancer.server.port: "32400"
       traefik.http.routers.plex.rule: "Host(`plex.{{ ansible_nas_domain }}`)"
       traefik.http.routers.plex.tls: "true"
