@@ -30,11 +30,21 @@
     pull: true
     volumes:
       - "{{ homeassistant_data_directory }}/config:/config:rw"
+      - "{{ homeassistant_movies_directory }}:/media/movies:{{ homeassistant_movies_permissions }}"
+      - "{{ homeassistant_music_directory }}:/media/music:{{ homeassistant_music_permissions }}"
+      - "{{ homeassistant_tv_directory }}:/media/tv:{{ homeassistant_tv_permissions }}"
     network_mode: host
-    restart_policy: unless-stopped
+    restart_policy: always
     env:
       TZ: "{{ ansible_nas_timezone }}"
+    healthcheck:
+      test: "curl --fail http://127.0.0.1:8123/auth/providers"
+      interval: 30s
+      retries: 6
+      start_period: 60s
+      timeout: 15s
     labels:
+      autoheal.enable: "true"
       traefik.enable: "{{ homeassistant_available_externally }}"
       traefik.docker.network: ""
       traefik.http.services.homeassistant-svc.loadbalancer.server.port: "8123"
