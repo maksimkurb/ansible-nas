@@ -14,7 +14,7 @@
     network_mode: host
     env:
       GLANCES_OPT: "-w"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ glances_available_externally }}"

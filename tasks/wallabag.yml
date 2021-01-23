@@ -21,7 +21,7 @@
       - "{{ wallabag_port }}:80"
     env:
       SYMFONY__ENV__DOMAIN_NAME: "https://wallabag.{{ ansible_nas_domain }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     labels:
       traefik.enable: "{{ wallabag_available_externally }}"
       traefik.http.services.wallabag-svc.loadbalancer.server.port: "80"

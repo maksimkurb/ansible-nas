@@ -54,6 +54,7 @@ mymediaforalexa_enabled: false
 miniflux_enabled: false
 
 # System Management
+autoheal_enabled: false
 heimdall_enabled: false
 organizr_enabled: false
 portainer_enabled: false
@@ -1079,6 +1080,12 @@ calibre_ebook_conversion: "linuxserver/calibre-web:calibre"
 homeassistant_available_externally: "false"
 homeassistant_data_directory: "{{ docker_home }}/homeassistant"
 homeassistant_port: "8123"
+homeassistant_movies_directory: "{{ movies_root }}"
+homeassistant_movies_permissions: "ro"
+homeassistant_music_directory: "{{ music_root }}"
+homeassistant_music_permissions: "ro"
+homeassistant_tv_directory: "{{ tv_root }}"
+homeassistant_tv_permissions: "ro"
 
 ###
 ### Zigbee2MQTT

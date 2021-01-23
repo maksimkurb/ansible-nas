@@ -27,7 +27,7 @@
     env:
       MYSQL_ROOT_PASSWORD: seafile
       MYSQL_LOG_CONSOLE: "true"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
 
 - name: Create Seafile memcached container
@@ -39,7 +39,7 @@
     purge_networks: true
     networks:
       - name: seafile
-    restart_policy: unless-stopped
+    restart_policy: always
 
 - name: Create Seafile container
   docker_container:
@@ -62,7 +62,7 @@
       SEAFILE_ADMIN_PASSWORD: "{{ lookup('password', creds_direcrory +'/seafile/admin_password length=32') }}"
       SEAFILE_SERVER_LETSENCRYPT: "false"
       TIME_ZONE: "{{ ansible_nas_timezone }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 2g
     labels:
       traefik.enable: "{{ seafile_available_externally }}"

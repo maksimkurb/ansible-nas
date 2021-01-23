@@ -25,7 +25,7 @@
       TZ: "{{ ansible_nas_timezone }}"
       PUID: "{{ plex_user_id }}"
       PGID: "{{ plex_group_id }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 2g
     labels:
       traefik.enable: "{{ plex_available_externally }}"

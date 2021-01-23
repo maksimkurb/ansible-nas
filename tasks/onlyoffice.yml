@@ -60,7 +60,7 @@
     ports:
       - "{{ onlyoffice_port_http }}:80"
       - "{{ onlyoffice_port_https }}:443"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ onlyoffice_available_externally }}"

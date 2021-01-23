@@ -44,7 +44,7 @@
     purge_networks: true
     networks:
       - name: nextcloud
-    restart_policy: unless-stopped
+    restart_policy: always
 
 - name: Template Nextcloud php-custom.ini
   template:
@@ -108,7 +108,7 @@
       SMTP_PASSWORD: "{{ smtp_password }}"
       SMTP_SECURE: "{{ smtp_secure }}"
       MAIL_FROM_ADDRESS: "{{ smtp_sender }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 3g
 
 - name: Nginx for Nextcloud Docker Container
@@ -135,7 +135,7 @@
       traefik.http.middlewares.nextcloud-headers.headers.customFrameOptionsValue: "SAMEORIGIN"
       traefik.http.middlewares.nextcloud-headers.headers.stsSeconds: "15552000"
       traefik.http.middlewares.nextcloud-headers.headers.stsIncludeSubdomains: "true"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
 
 # Check if configuration needed
@@ -226,4 +226,4 @@
       - name: postgres
       - name: nextcloud
     env: *nextcloud-env
-    restart_policy: unless-stopped
+    restart_policy: always

@@ -13,7 +13,7 @@
 - name: Portainer Docker Container
   docker_container:
     name: portainer
-    image: portainer/portainer
+    image: portainer/portainer-ce
     purge_networks: true
     networks:
       - name: web
@@ -25,7 +25,7 @@
       - "/etc/timezone:/etc/timezone:ro"
     ports:
       - "{{ portainer_port }}:9000"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ portainer_available_externally }}"

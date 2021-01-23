@@ -53,7 +53,7 @@
       JOOMLA_DB_USER: "joomla"
       JOOMLA_DB_NAME: "joomla"
       JOOMLA_DB_PASSWORD: "{{ lookup('password', creds_direcrory +'/joomla/joomla_postgres_passwd length=32') }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ joomla_available_externally }}"

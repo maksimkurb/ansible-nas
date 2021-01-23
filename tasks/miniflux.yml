@@ -51,7 +51,7 @@
       ADMIN_PASSWORD: "{{ miniflux_admin_password }}"
     volumes:
     - ":/config/nginx/site-confs/default:ro"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ miniflux_available_externally }}"

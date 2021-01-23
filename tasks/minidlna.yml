@@ -16,6 +16,8 @@
       MINIDLNA_MEDIA_DIR3: "A,/music"
       MINIDLNA_FRIENDLY_NAME: "{{ minidlna_friendly_name }}"
       MINIDLNA_PORT: "8201"
+    labels:
+      autoheal.enable: "true"
     network_mode: host
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g

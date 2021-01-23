@@ -23,7 +23,7 @@
       DOCKER_MODS: "{{ calibre_ebook_conversion }}"
     ports:
       - "{{ calibre_port }}:8083"
-    restart_policy: unless-stopped
+    restart_policy: always
     labels:
       traefik.enable: "{{ calibre_available_externally }}"
       traefik.http.services.calibre-svc.loadbalancer.server.port: "8083"

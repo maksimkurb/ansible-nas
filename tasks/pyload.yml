@@ -25,7 +25,7 @@
       TZ: "{{ ansible_nas_timezone }}"
       UID: "{{ pyload_user_id }}"
       GID: "{{ pyload_group_id }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ pyload_available_externally }}"

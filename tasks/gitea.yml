@@ -74,7 +74,7 @@
       ROOT_URL: "{% if (gitea_available_externally | bool) %}https://gitea.{{ ansible_nas_domain }}/{% else %}http://{{ ansible_nas_hostname }}:{{ gitea_port_http }}/{% endif %}"
       USER_UID: "1309"
       USER_GID: "1309"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ gitea_available_externally }}"

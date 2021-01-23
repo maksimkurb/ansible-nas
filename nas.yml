@@ -28,6 +28,10 @@
     - import_tasks: tasks/docker.yml
       tags: docker
 
+    - import_tasks: tasks/autoheal.yml
+      when: (autoheal_enabled | default(False))
+      tags: autoheal
+
     - import_tasks: tasks/traefik.yml
       when: (traefik_enabled | default(False))
       tags: traefik

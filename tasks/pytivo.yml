@@ -31,7 +31,7 @@
       TZ: "{{ ansible_nas_timezone }}"
       PUID: "{{ pytivo_user_id }}"
       PGID: "{{ pytivo_group_id }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ pytivo_available_externally }}"

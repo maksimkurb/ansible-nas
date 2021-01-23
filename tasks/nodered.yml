@@ -22,9 +22,10 @@
       - "{{ nodered_port }}:1880"
     volumes:
       - "{{ nodered_data_directory }}/data:/data"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
+      autoheal.enable: "true"
       traefik.enable: "{{ nodered_available_externally }}"
       traefik.http.services.nodered-svc.loadbalancer.server.port: "1880"
       traefik.http.routers.nodered.rule: "Host(`nodered.{{ ansible_nas_domain }}`)"

@@ -49,7 +49,7 @@
     ports:
       - "{{ heimdall_port_http }}:80"
       - "{{ heimdall_port_https }}:443"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ heimdall_available_externally }}"

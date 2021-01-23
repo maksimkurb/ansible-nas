@@ -37,7 +37,7 @@
       - "{{ influxdb_data_directory }}:/var/lib/influxdb:rw"
     ports:
       - "{{ grafana_influxdb_port }}:8086"
-    restart_policy: unless-stopped
+    restart_policy: always
     env:
       INFLUXDB_LOGGING_LEVEL: "error"
     memory: 1g
@@ -50,7 +50,7 @@
     networks:
       - name: stats
     privileged: true
-    restart_policy: unless-stopped
+    restart_policy: always
     env:
       HDDTEMP_ARGS: "-q -d -F /dev/sd*"
       TZ: "{{ ansible_nas_timezone }}"
@@ -64,7 +64,7 @@
     pull: true
     networks:
       - name: stats
-    restart_policy: unless-stopped
+    restart_policy: always
     etc_hosts:
       host.docker.internal: "{{ host_docker_internal_ip }}"
     env:
@@ -109,7 +109,7 @@
       HOST_VAR: "/hostfs/var"
       HOST_RUN: "/hostfs/run"
       HOST_MOUNT_PREFIX: "/hostfs"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
 
 - name: Template Grafana data source
@@ -152,7 +152,7 @@
       - "{{ grafana_data_directory }}/config/provisioning:/etc/grafana/provisioning:ro"
     ports:
       - "{{ grafana_port }}:3000"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ grafana_available_externally }}"
@@ -168,5 +168,5 @@
     networks:
       - name: stats
     pull: true
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 512m

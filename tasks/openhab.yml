@@ -42,7 +42,7 @@
     env:
       OPENHAB_HTTP_PORT: "{{ openhab_port_http }}"
       OPENHAB_HTTPS_PORT: "{{ openhab_port_https }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ openhab_available_externally }}"

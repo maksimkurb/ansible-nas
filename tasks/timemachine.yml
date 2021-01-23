@@ -20,7 +20,7 @@
     ulimits:
       - "nofile:1048576:1048576"
     network_mode: bridge
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
 
 - name: Install avahi

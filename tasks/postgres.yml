@@ -33,7 +33,7 @@
       - "{{ postgres_data_directory }}/pgdata:/var/lib/postgresql/data:rw"
     ports:
       - 5432:5432
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       com.centurylinklabs.watchtower.enable: "false"
@@ -58,7 +58,7 @@
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "{{ postgres_data_directory }}/pgbackup:/backups"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       com.centurylinklabs.watchtower.enable: "false"

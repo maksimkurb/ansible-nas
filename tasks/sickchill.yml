@@ -31,7 +31,7 @@
       TZ: "{{ ansible_nas_timezone }}"
       PUID: "{{ sickchill_user_id }}"
       PGID: "{{ sickchill_group_id }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ sickchill_available_externally }}"

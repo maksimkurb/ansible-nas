@@ -40,7 +40,7 @@
       - name: traefik-docker-socket-proxy
     networks_cli_compatible: false
     pull: true
-    restart_policy: unless-stopped
+    restart_policy: always
 
 - name: Traefik Docker Container
   docker_container:
@@ -84,5 +84,5 @@
       traefik.http.middlewares.auth-sso.forwardAuth.address: "http://authelia:9091/api/verify?rd=https://sso.{{ ansible_nas_domain }}/"
       traefik.http.middlewares.auth-sso.forwardAuth.trustForwardHeader: "true"
       traefik.http.middlewares.auth-sso.forwardAuth.authResponseHeaders: "Remote-User,Remote-Groups"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g

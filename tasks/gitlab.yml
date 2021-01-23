@@ -44,7 +44,7 @@
       - "{{ gitlab_port_https }}:443"
       - "{{ gitlab_port_ssh }}:22"
     hostname: "gitlab.{{ ansible_nas_domain }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 4g
     labels:
       traefik.enable: "{{ gitlab_available_externally }}"

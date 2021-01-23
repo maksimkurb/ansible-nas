@@ -24,6 +24,8 @@
       LOG_FILE: "/data/bitwarden.log"
       WEBSOCKET_ENABLED: "true"
     labels:
+      autoheal.enable: "true"
+
       traefik.enable: "{{ bitwarden_available_externally }}"
 
       traefik.http.services.bitwarden-web-svc.loadbalancer.server.port: "80"
@@ -37,7 +39,7 @@
       traefik.http.routers.bitwarden-ws.middlewares: bitwarden-ws-strip
       traefik.http.routers.bitwarden-ws.service: bitwarden-ws-svc
       traefik.http.middlewares.bitwarden-ws-strip.stripprefix.prefixes: /notifications/hub
-    restart_policy: unless-stopped
+    restart_policy: always
     #memory: 1g
 
 - name: Bitwarden Backup Container
@@ -45,6 +47,6 @@
     name: bitwarden-backup
     image: bruceforce/bw_backup:latest
     pull: true
-    restart_policy: unless-stopped
+    restart_policy: always
     volumes_from: bitwarden
     memory: 1g

@@ -31,7 +31,7 @@
     ports:
       - "{{ organizr_port_http }}:80"
       - "{{ organizr_port_https }}:443"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ organizr_available_externally }}"

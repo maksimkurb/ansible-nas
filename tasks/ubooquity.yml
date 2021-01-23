@@ -27,7 +27,7 @@
     ports:
       - "{{ ubooquity_port_webui }}:2202"
       - "{{ ubooquity_port_admin }}:2203"
-    restart_policy: unless-stopped
+    restart_policy: always
     labels:
       traefik.enable: "{{ ubooquity_available_externally }}"
       traefik.http.services.ubooquity-svc.loadbalancer.server.port: "2202"

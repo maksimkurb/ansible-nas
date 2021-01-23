@@ -21,7 +21,7 @@
       - "{{ jackett_port }}:9117"
     env:
       TZ: "{{ ansible_nas_timezone }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     labels:
       traefik.enable: "{{ jackett_available_externally }}"
       traefik.http.services.jackett-svc.loadbalancer.server.port: "9117"

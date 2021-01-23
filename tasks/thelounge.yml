@@ -27,7 +27,7 @@
     volumes:
       - "{{ thelounge_data_directory }}:/var/opt/thelounge"
       - "/var/run/dbus:/var/run/dbus"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 1g
     labels:
       traefik.enable: "{{ thelounge_available_externally }}"

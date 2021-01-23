@@ -9,6 +9,6 @@
       EMAIL: "{{ cloudflare_email }}"
       API: "{{ cloudflare_api_key }}"
       PROXY: "false"
-    restart_policy: unless-stopped
+    restart_policy: always
     memory: 512MB
 

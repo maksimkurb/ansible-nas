@@ -27,7 +27,7 @@
       SECURE_CONNECTION: "{{ krusader_secure_connection }}"
       TZ: "{{ ansible_nas_timezone }}"
       VNC_PASSWORD: "{{ krusader_vnc_password }}"
-    restart_policy: unless-stopped
+    restart_policy: always
     labels:
       traefik.enable: "{{ krusader_available_externally }}"
       traefik.http.services.krusader-svc.loadbalancer.server.port: "5800"

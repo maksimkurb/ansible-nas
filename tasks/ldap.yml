@@ -87,7 +87,7 @@
     name: whoami
     image: emilevauge/whoami
     pull: true
-    # restart_policy: unless-stopped
+    # restart_policy: always
     networks:
       - name: web
     labels:
@@ -149,7 +149,7 @@
     ports:
       - "{{ ldap_port }}:389"
       - "{{ ldap_port_ssl }}:636"
-    restart_policy: unless-stopped
+    restart_policy: always
     labels:
       com.centurylinklabs.watchtower.enable: "false"
 
@@ -259,7 +259,7 @@
       traefik.http.routers.phpLdapAdmin.rule: "Host(`ldap-admin.{{ ansible_nas_domain }}`)"
       traefik.http.routers.phpLdapAdmin.tls: "true"
       traefik.http.routers.phpLdapAdmin.middlewares: "auth-sso"
-    restart_policy: unless-stopped
+    restart_policy: always
 
 # ================
 # Authelia
@@ -297,6 +297,7 @@
     ports:
       - "{{ ldap_port_authelia }}:9091"
     labels:
+      autoheal.enable: "true"
       traefik.enable: "true"
       traefik.http.services.authelia-svc.loadbalancer.server.port: "9091"
       traefik.http.routers.authelia.rule: "Host(`sso.{{ ansible_nas_domain }}`)"
@@ -310,7 +311,7 @@
       - name: ldap
       - name: postgres
       - name: web
-    restart_policy: unless-stopped
+    restart_policy: always
 
 - name: "Redis for Authelia"
   docker_container:
@@ -318,4 +319,4 @@
     image: redis
     networks:
       - name: ldap
-    restart_policy: unless-stopped
+    restart_policy: always
