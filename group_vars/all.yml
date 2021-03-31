@@ -947,10 +947,10 @@ krusader_port_http: "5800"
 krusader_port_vnc: "5900"
 
 ###
-### OpenSpeedTest
+### LibreSpeed
 ###
-openspeedtest_available_externally: "true"
-openspeedtest_port: "14141"
+librespeed_available_externally: "true"
+librespeed_port: "14141"
 
 ###
 ### Watchtower

@@ -1,0 +1,25 @@
+---
+- name: librespeed
+  docker_container:
+    name: librespeed
+    image: adolfintel/speedtest
+    purge_networks: true
+    networks:
+      - name: web
+    pull: true
+    ports:
+      - "{{ librespeed_port }}:80"
+    env:
+      TZ: "{{ ansible_nas_timezone }}"
+      PUID: "1000"
+      PGID: "1000"
+      TELEMETRY: "true"
+      PASSWORD: "{{ lookup('password', creds_direcrory +'/librespeed/stats_password length=16') }}"
+      MODE: standalone
+    restart_policy: always
+    memory: 1g
+    labels:
+      traefik.enable: "{{ librespeed_available_externally }}"
+      traefik.http.services.librespeed-svc.loadbalancer.server.port: "80"
+      traefik.http.routers.librespeed.rule: "Host(`speedtest.{{ ansible_nas_domain }}`, `speedtest-1.{{ ansible_nas_domain }}`, `speedtest-2.{{ ansible_nas_domain }}`, `speedtest-3.{{ ansible_nas_domain }}`, `speedtest-4.{{ ansible_nas_domain }}`)"
+      traefik.http.routers.librespeed.tls: "true"
