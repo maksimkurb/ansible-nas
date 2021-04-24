@@ -63,7 +63,8 @@ authentication_backend:
     # The url to the ldap server. Scheme can be ldap:// or ldaps://
     url: ldap://openldap:389
     # Skip verifying the server certificate (to allow self-signed certificate).
-    skip_verify: false
+    tls:
+      skip_verify: false
 
     # The attribute holding the username of the user. This attribute is used to populate
     # the username in the session information. It was introduced due to #561 to handle case
